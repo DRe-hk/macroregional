@@ -5,11 +5,14 @@ namespace App\Http\Controllers;
 use App\Models\Delegacion;
 use App\Models\Disciplina;
 use App\Models\Torneo;
+use App\Services\TournamentService;
 use Illuminate\Http\Request;
 use Illuminate\View\View;
 
 class HomeController extends Controller
 {
+    public function __construct(protected TournamentService $tournamentService) {}
+
     public function index(): View
     {
         $torneo = Torneo::actual();
@@ -19,16 +22,35 @@ class HomeController extends Controller
         return view('home', compact('torneo', 'disciplinas', 'totalEquipos'));
     }
 
-    public function clasificacion(): View
+    public function clasificacion(Request $request): View
     {
         $torneo = Torneo::actual();
+        $disciplinas = Disciplina::orderBy('nombre')->get();
+        $deporteSlug = $request->query('deporte');
+
+        $disciplinaSeleccionada = null;
+        $tablaPorDisciplina = null;
+
+        if ($deporteSlug) {
+            $disciplinaSeleccionada = Disciplina::where('slug', $deporteSlug)->first();
+            if ($disciplinaSeleccionada) {
+                $tablaPorDisciplina = $this->tournamentService->obtenerTablaPorDisciplina($disciplinaSeleccionada);
+            }
+        }
+
         $delegaciones = Delegacion::orderByDesc('puntos')
             ->orderByDesc('dg')
             ->orderByDesc('gf')
             ->orderBy('nombre')
             ->get();
 
-        return view('clasificacion', compact('torneo', 'delegaciones'));
+        return view('clasificacion', compact(
+            'torneo',
+            'delegaciones',
+            'disciplinas',
+            'disciplinaSeleccionada',
+            'tablaPorDisciplina'
+        ));
     }
 
     public function equipos(): View
@@ -69,6 +91,9 @@ class HomeController extends Controller
             ksort($rondasMap);
         }
 
-        return view('disciplina', compact('torneo', 'disciplina', 'serieSeleccionada', 'letraActiva', 'rondasMap'));
+        // Obtener tabla de posiciones individual para esta serie o disciplina
+        $tablaPosiciones = $this->tournamentService->obtenerTablaPorDisciplina($disciplina, $serieSeleccionada);
+
+        return view('disciplina', compact('torneo', 'disciplina', 'serieSeleccionada', 'letraActiva', 'rondasMap', 'tablaPosiciones'));
     }
 }

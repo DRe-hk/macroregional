@@ -13,6 +13,8 @@ class Torneo extends Model
         'subtitulo',
         'organizador',
         'sede_principal',
+        'logo_url',
+        'portada_url',
         'anio',
         'avance_porcentaje',
     ];
@@ -26,6 +28,8 @@ class Torneo extends Model
                 'subtitulo' => 'Torneo Deportivo Macroregional de Educación',
                 'organizador' => 'Comisión Macroregional DREP',
                 'sede_principal' => 'Puno / Juliaca',
+                'logo_url' => null,
+                'portada_url' => '/images/portada_macroregional.jpeg',
                 'anio' => 2026,
                 'avance_porcentaje' => 0,
             ]

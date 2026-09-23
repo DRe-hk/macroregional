@@ -91,4 +91,50 @@ class TournamentFeatureTest extends TestCase
         $response->assertRedirect('/delegado');
         $this->assertAuthenticated();
     }
+
+    public function test_discipline_individual_standings_and_reference_photo_render(): void
+    {
+        $response = $this->get('/d/futbol-libre');
+        $response->assertStatus(200);
+        $response->assertSee('Tabla de Posiciones');
+        $response->assertSee('Fútbol Libre');
+
+        $responseClasif = $this->get('/clasificacion?deporte=futbol-libre');
+        $responseClasif->assertStatus(200);
+        $responseClasif->assertSee('Tabla de Posiciones · Fútbol Libre');
+    }
+
+    public function test_admin_can_save_deporte_with_reference_photo_and_delegacion_with_logo(): void
+    {
+        $admin = User::where('username', 'admin')->first();
+
+        // 1. Guardar deporte con foto de referencia
+        $respDeporte = $this->actingAs($admin)->post('/admin/deportes', [
+            'nombre' => 'Ajedrez Olímpico',
+            'categoria' => 'Ajedrez',
+            'color_acento' => '#10b981',
+            'sede_principal' => 'Auditorio DREP',
+            'foto_url' => 'https://example.com/chess.jpg',
+            'foto_referencia_url' => 'https://example.com/chess-ref.jpg',
+            'descripcion' => 'Torneo de ajedrez rápido ritmo suizo',
+        ]);
+        $respDeporte->assertSessionHas('success');
+        $this->assertDatabaseHas('disciplinas', [
+            'slug' => 'ajedrez-olimpico',
+            'foto_referencia_url' => 'https://example.com/chess-ref.jpg',
+        ]);
+
+        // 2. Guardar delegación con logo
+        $respDel = $this->actingAs($admin)->post('/admin/delegaciones', [
+            'nombre' => 'UGEL San Antonio de Putina',
+            'siglas' => 'Putina Especial',
+            'provincia' => 'San Antonio de Putina',
+            'logo_url' => 'https://example.com/putina-shield.png',
+        ]);
+        $respDel->assertSessionHas('success');
+        $this->assertDatabaseHas('delegaciones', [
+            'siglas' => 'Putina Especial',
+            'logo_url' => 'https://example.com/putina-shield.png',
+        ]);
+    }
 }

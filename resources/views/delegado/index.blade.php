@@ -9,9 +9,13 @@
         <!-- Tarjeta de Identificación del Delegado -->
         <div class="rounded-2xl border border-slate-200 bg-white p-6 shadow-xs flex flex-col md:flex-row md:items-center justify-between gap-4">
             <div class="flex items-center gap-4">
-                <div class="grid size-12 place-items-center rounded-xl bg-blue-600 text-white font-black text-lg shrink-0 shadow-xs">
-                    {{ substr($delegacion?->siglas ?? 'UG', 0, 2) }}
-                </div>
+                @if($delegacion?->logo_url)
+                    <img src="{{ $delegacion->logo_url }}" alt="{{ $delegacion->siglas }}" class="size-14 rounded-xl object-contain p-1 border border-slate-200 bg-white shadow-xs shrink-0" />
+                @else
+                    <div class="grid size-12 place-items-center rounded-xl bg-blue-600 text-white font-black text-lg shrink-0 shadow-xs">
+                        {{ substr($delegacion?->siglas ?? 'UG', 0, 2) }}
+                    </div>
+                @endif
                 <div>
                     <div class="flex items-center gap-2">
                         <span class="rounded bg-blue-100 px-2 py-0.5 text-[10px] font-black uppercase tracking-wider text-blue-800">
@@ -114,10 +118,14 @@
                             
                             <!-- Equipo Local -->
                             <div class="flex items-center justify-between p-3 rounded-lg border {{ $partido->local_id === $user->delegacion_id ? 'border-blue-300 bg-blue-50/40' : 'border-slate-200 bg-slate-50/40' }}">
-                                <div class="flex items-center gap-2">
-                                    <span class="grid size-6 place-items-center rounded bg-slate-900 text-white text-[10px] font-black shrink-0">
-                                        {{ substr($partido->local?->siglas ?? 'L', 0, 2) }}
-                                    </span>
+                                <div class="flex items-center gap-2.5">
+                                    @if($partido->local?->logo_url)
+                                        <img src="{{ $partido->local->logo_url }}" alt="{{ $partido->local->siglas }}" class="size-7 rounded object-contain shrink-0" />
+                                    @else
+                                        <span class="grid size-6 place-items-center rounded bg-slate-900 text-white text-[10px] font-black shrink-0">
+                                            {{ substr($partido->local?->siglas ?? 'L', 0, 2) }}
+                                        </span>
+                                    @endif
                                     <div>
                                         <span class="text-xs font-black text-slate-900 block">
                                             {{ $partido->local?->nombre ?? 'Local por definir' }}
@@ -141,10 +149,14 @@
 
                             <!-- Equipo Visitante -->
                             <div class="flex items-center justify-between p-3 rounded-lg border {{ $partido->visitante_id === $user->delegacion_id ? 'border-blue-300 bg-blue-50/40' : 'border-slate-200 bg-slate-50/40' }}">
-                                <div class="flex items-center gap-2">
-                                    <span class="grid size-6 place-items-center rounded bg-slate-900 text-white text-[10px] font-black shrink-0">
-                                        {{ substr($partido->visitante?->siglas ?? 'V', 0, 2) }}
-                                    </span>
+                                <div class="flex items-center gap-2.5">
+                                    @if($partido->visitante?->logo_url)
+                                        <img src="{{ $partido->visitante->logo_url }}" alt="{{ $partido->visitante->siglas }}" class="size-7 rounded object-contain shrink-0" />
+                                    @else
+                                        <span class="grid size-6 place-items-center rounded bg-slate-900 text-white text-[10px] font-black shrink-0">
+                                            {{ substr($partido->visitante?->siglas ?? 'V', 0, 2) }}
+                                        </span>
+                                    @endif
                                     <div>
                                         <span class="text-xs font-black text-slate-900 block">
                                             {{ $partido->visitante?->nombre ?? 'Visitante por definir' }}

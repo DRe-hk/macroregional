@@ -20,6 +20,7 @@ class Disciplina extends Model
         'categoria',
         'color_acento',
         'foto_url',
+        'foto_referencia_url',
         'descripcion',
         'sede_principal',
         'sede_maps_url',

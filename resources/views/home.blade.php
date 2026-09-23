@@ -4,64 +4,110 @@
 
 @section('content')
 <div class="bg-white min-h-screen">
-    <!-- Hero Minimalista Deportivo -->
-    <div class="bg-slate-50 border-b border-slate-200 py-10 sm:py-14 px-4 sm:px-6">
-        <div class="mx-auto max-w-[1360px]">
-            <div class="flex flex-col md:flex-row md:items-end justify-between gap-6">
-                <div class="max-w-3xl">
-                    <div class="inline-flex items-center gap-1.5 rounded-md bg-slate-200/80 px-2.5 py-1 text-[11px] font-extrabold uppercase tracking-wider text-slate-700 mb-3">
-                        <svg class="size-3.5 text-slate-800" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+    <!-- Hero Oficial Deportivo con Portada JEDPA -->
+    <div class="relative bg-slate-50 border-b border-slate-200 overflow-hidden">
+        <div class="mx-auto max-w-[1360px] px-4 py-8 sm:py-12 sm:px-6">
+            <div class="grid grid-cols-1 lg:grid-cols-12 gap-8 items-center">
+                
+                <!-- Columna Izquierda: Información del Torneo -->
+                <div class="lg:col-span-6 xl:col-span-7 flex flex-col justify-center">
+                    <div class="inline-flex items-center gap-2 rounded-full bg-slate-200/80 px-3 py-1 text-xs font-black uppercase tracking-wider text-slate-800 w-fit mb-3">
+                        <span class="size-2 rounded-full bg-blue-600 animate-pulse"></span>
                         <span>{{ $torneo->organizador }}</span>
                     </div>
 
-                    <h1 class="text-3xl sm:text-5xl font-black tracking-tight text-slate-950 leading-tight">
+                    <h1 class="text-3xl sm:text-5xl xl:text-6xl font-black tracking-tight text-slate-950 leading-[1.1]">
                         {{ $torneo->nombre }}
                     </h1>
 
-                    <p class="mt-3 text-base sm:text-lg text-slate-600 font-medium">
+                    <p class="mt-3 text-base sm:text-lg text-slate-600 font-medium max-w-2xl leading-relaxed">
                         {{ $torneo->subtitulo }}
                     </p>
+
+                    <!-- Métricas Clave -->
+                    <div class="mt-6 flex flex-wrap items-center gap-4 sm:gap-6 border-y border-slate-200 py-4">
+                        <div class="text-left">
+                            <span class="block text-2xl sm:text-3xl font-black text-slate-900 tabular-nums">
+                                {{ $disciplinas->count() }}
+                            </span>
+                            <span class="text-[11px] font-bold text-slate-500 uppercase tracking-wider">
+                                Deportes
+                            </span>
+                        </div>
+
+                        <div class="h-8 w-px bg-slate-200"></div>
+
+                        <div class="text-left">
+                            <span class="block text-2xl sm:text-3xl font-black text-slate-900 tabular-nums">
+                                {{ $totalEquipos }}
+                            </span>
+                            <span class="text-[11px] font-bold text-slate-500 uppercase tracking-wider">
+                                Delegaciones
+                            </span>
+                        </div>
+
+                        <div class="h-8 w-px bg-slate-200"></div>
+
+                        <div class="text-left">
+                            <span class="block text-2xl sm:text-3xl font-black text-slate-900 tabular-nums">
+                                {{ $torneo->anio }}
+                            </span>
+                            <span class="text-[11px] font-bold text-slate-500 uppercase tracking-wider">
+                                Edición
+                            </span>
+                        </div>
+
+                        <div class="h-8 w-px bg-slate-200"></div>
+
+                        <div class="text-left">
+                            <span class="block text-sm sm:text-base font-extrabold text-slate-900">
+                                {{ $torneo->sede_principal }}
+                            </span>
+                            <span class="text-[11px] font-bold text-slate-500 uppercase tracking-wider">
+                                Sede Central
+                            </span>
+                        </div>
+                    </div>
+
+                    <!-- Botones de Acción Rápida -->
+                    <div class="mt-6 flex flex-wrap items-center gap-3">
+                        <a href="#deportes" class="inline-flex items-center gap-2 rounded-xl bg-slate-950 px-5 py-3 text-xs font-black uppercase tracking-wider text-white shadow-xs transition hover:bg-slate-800">
+                            <span>Explorar Deportes</span>
+                            <svg class="size-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="m6 9 6 6 6-6"/></svg>
+                        </a>
+                        <a href="{{ route('clasificacion') }}" class="inline-flex items-center gap-2 rounded-xl border border-slate-300 bg-white px-5 py-3 text-xs font-black uppercase tracking-wider text-slate-800 shadow-2xs transition hover:bg-slate-100">
+                            <svg class="size-4 text-amber-500" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M6 9H4.5a2.5 2.5 0 0 1 0-5H6"/><path d="M18 9h1.5a2.5 2.5 0 0 0 0-5H18"/><path d="M4 22h16"/><path d="M18 2H6v7a6 6 0 0 0 12 0V2Z"/></svg>
+                            <span>Tabla de Posiciones</span>
+                        </a>
+                    </div>
                 </div>
 
-                <!-- Métricas Clave -->
-                <div class="flex items-center gap-4 sm:gap-6 border-t md:border-t-0 md:border-l border-slate-200 pt-4 md:pt-0 md:pl-6">
-                    <div class="text-left">
-                        <span class="block text-2xl sm:text-3xl font-black text-slate-900 tabular-nums">
-                            {{ $disciplinas->count() }}
-                        </span>
-                        <span class="text-xs font-bold text-slate-500 uppercase tracking-wider">
-                            Deportes
-                        </span>
-                    </div>
-
-                    <div class="h-8 w-px bg-slate-200"></div>
-
-                    <div class="text-left">
-                        <span class="block text-2xl sm:text-3xl font-black text-slate-900 tabular-nums">
-                            {{ $totalEquipos }}
-                        </span>
-                        <span class="text-xs font-bold text-slate-500 uppercase tracking-wider">
-                            Delegaciones
-                        </span>
-                    </div>
-
-                    <div class="h-8 w-px bg-slate-200"></div>
-
-                    <div class="text-left">
-                        <span class="block text-2xl sm:text-3xl font-black text-slate-900 tabular-nums">
-                            {{ $torneo->anio }}
-                        </span>
-                        <span class="text-xs font-bold text-slate-500 uppercase tracking-wider">
-                            Edición
-                        </span>
+                <!-- Columna Derecha: Portada Oficial JEDPA -->
+                <div class="lg:col-span-6 xl:col-span-5">
+                    <div class="group relative overflow-hidden rounded-2xl border border-slate-200/90 bg-white shadow-sm transition hover:shadow-md">
+                        <div class="aspect-video w-full overflow-hidden bg-slate-100 relative">
+                            <img
+                                src="{{ $torneo->portada_url ?: '/images/portada_macroregional.jpeg' }}"
+                                alt="Portada Oficial {{ $torneo->nombre }}"
+                                class="h-full w-full object-cover transition-transform duration-500 group-hover:scale-[1.02]"
+                            />
+                        </div>
+                        <div class="p-3.5 bg-white border-t border-slate-100 flex items-center justify-between text-xs">
+                            <div class="flex items-center gap-2">
+                                <span class="size-2 rounded-full bg-emerald-500"></span>
+                                <span class="font-extrabold text-slate-800 uppercase tracking-wider">Juegos Escolares Deportivos y Paradeportivos</span>
+                            </div>
+                            <span class="font-bold text-slate-500">Oficial</span>
+                        </div>
                     </div>
                 </div>
+
             </div>
         </div>
     </div>
 
     <!-- Contenedor de Disciplinas -->
-    <div class="mx-auto max-w-[1360px] px-4 py-8 sm:px-6 space-y-10">
+    <div id="deportes" class="mx-auto max-w-[1360px] px-4 py-8 sm:px-6 space-y-10 scroll-mt-6">
         
         <!-- Barra de Sección -->
         <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-slate-200 pb-4">

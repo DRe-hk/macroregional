@@ -133,4 +133,117 @@ class TournamentService
         $partido->save();
         $this->recalcularTablaPosiciones();
     }
+
+    /**
+     * Obtiene la tabla de posiciones individual calculada para una disciplina (o serie específica).
+     *
+     * @return array<int, array{pos: int, delegacion: Delegacion, pj: int, pg: int, pe: int, pp: int, gf: int, gc: int, dg: int, puntos: int}>
+     */
+    public function obtenerTablaPorDisciplina(Disciplina $disciplina, ?Serie $serie = null): array
+    {
+        $seriesIds = $serie ? collect([$serie->id]) : $disciplina->series()->pluck('id');
+
+        $partidos = Partido::whereIn('serie_id', $seriesIds)->get();
+        $partidosFinalizados = $partidos->where('estado', 'FINALIZADO');
+
+        // Obtener IDs de delegaciones que participan en estos partidos
+        $participantesIds = $partidos->pluck('local_id')
+            ->merge($partidos->pluck('visitante_id'))
+            ->filter()
+            ->unique();
+
+        if ($participantesIds->isEmpty()) {
+            $delegaciones = Delegacion::orderBy('nombre')->get();
+        } else {
+            $delegaciones = Delegacion::whereIn('id', $participantesIds)->orderBy('nombre')->get();
+        }
+
+        $stats = [];
+        foreach ($delegaciones as $del) {
+            $stats[$del->id] = [
+                'delegacion' => $del,
+                'pj' => 0,
+                'pg' => 0,
+                'pe' => 0,
+                'pp' => 0,
+                'gf' => 0,
+                'gc' => 0,
+                'dg' => 0,
+                'puntos' => 0,
+            ];
+        }
+
+        foreach ($partidosFinalizados as $partido) {
+            $localId = $partido->local_id;
+            $visitanteId = $partido->visitante_id;
+            $localGoles = $partido->local_goles;
+            $visitanteGoles = $partido->visitante_goles;
+
+            if ($localGoles === null || $visitanteGoles === null) {
+                continue;
+            }
+
+            if ($localId && isset($stats[$localId])) {
+                $stats[$localId]['pj']++;
+                $stats[$localId]['gf'] += $localGoles;
+                $stats[$localId]['gc'] += $visitanteGoles;
+
+                if ($localGoles > $visitanteGoles) {
+                    $stats[$localId]['pg']++;
+                    $stats[$localId]['puntos'] += 3;
+                } elseif ($localGoles === $visitanteGoles) {
+                    $stats[$localId]['pe']++;
+                    $stats[$localId]['puntos'] += 1;
+                } else {
+                    $stats[$localId]['pp']++;
+                }
+            }
+
+            if ($visitanteId && isset($stats[$visitanteId])) {
+                $stats[$visitanteId]['pj']++;
+                $stats[$visitanteId]['gf'] += $visitanteGoles;
+                $stats[$visitanteId]['gc'] += $localGoles;
+
+                if ($visitanteGoles > $localGoles) {
+                    $stats[$visitanteId]['pg']++;
+                    $stats[$visitanteId]['puntos'] += 3;
+                } elseif ($visitanteGoles === $localGoles) {
+                    $stats[$visitanteId]['pe']++;
+                    $stats[$visitanteId]['puntos'] += 1;
+                } else {
+                    $stats[$visitanteId]['pp']++;
+                }
+            }
+        }
+
+        foreach ($stats as $delId => &$data) {
+            $data['dg'] = $data['gf'] - $data['gc'];
+        }
+        unset($data);
+
+        // Ordenar por: Puntos DESC, DG DESC, GF DESC, Nombre ASC
+        usort($stats, function ($a, $b) {
+            if ($a['puntos'] !== $b['puntos']) {
+                return $b['puntos'] <=> $a['puntos'];
+            }
+            if ($a['dg'] !== $b['dg']) {
+                return $b['dg'] <=> $a['dg'];
+            }
+            if ($a['gf'] !== $b['gf']) {
+                return $b['gf'] <=> $a['gf'];
+            }
+
+            return strcasecmp($a['delegacion']->nombre, $b['delegacion']->nombre);
+        });
+
+        // Asignar posición 1-indexed
+        $tabla = [];
+        $pos = 1;
+        foreach ($stats as $item) {
+            $item['pos'] = $pos++;
+            $tabla[] = $item;
+        }
+
+        return $tabla;
+    }
 }

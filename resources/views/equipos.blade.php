@@ -33,16 +33,25 @@
         <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
             @foreach($delegaciones as $del)
                 <div class="rounded-xl border border-slate-200 bg-white p-4 flex items-center justify-between hover:border-slate-300 transition-colors shadow-2xs">
-                    <div>
-                        <div class="flex items-center gap-1 text-[11px] text-slate-400 font-bold uppercase mb-0.5">
-                            <svg class="size-3" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z"/><circle cx="12" cy="10" r="3"/></svg>
-                            <span>{{ $del->provincia }}</span>
+                    <div class="flex items-center gap-3.5">
+                        @if($del->logo_url)
+                            <img src="{{ $del->logo_url }}" alt="{{ $del->siglas }}" class="size-11 rounded-lg object-contain p-1 border border-slate-200 bg-white shadow-2xs shrink-0" />
+                        @else
+                            <div class="grid size-11 place-items-center rounded-lg bg-slate-900 text-white font-black text-xs shrink-0">
+                                {{ substr($del->siglas, 0, 2) }}
+                            </div>
+                        @endif
+                        <div>
+                            <div class="flex items-center gap-1 text-[11px] text-slate-400 font-bold uppercase mb-0.5">
+                                <svg class="size-3" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z"/><circle cx="12" cy="10" r="3"/></svg>
+                                <span>{{ $del->provincia }}</span>
+                            </div>
+                            <h3 class="font-extrabold text-sm sm:text-base text-slate-950">{{ $del->nombre }}</h3>
+                            <span class="text-xs font-bold text-blue-600">Siglas: {{ $del->siglas }}</span>
                         </div>
-                        <h3 class="font-extrabold text-base text-slate-950">{{ $del->nombre }}</h3>
-                        <span class="text-xs font-bold text-blue-600">Siglas: {{ $del->siglas }}</span>
                     </div>
 
-                    <div class="text-right pl-3 border-l border-slate-100">
+                    <div class="text-right pl-3 border-l border-slate-100 shrink-0">
                         <span class="block text-xl font-black text-slate-900 tabular-nums">
                             {{ $del->puntos }}
                         </span>

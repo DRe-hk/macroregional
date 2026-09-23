@@ -95,8 +95,8 @@
 
         <!-- 1. PESTAÑA: TORNEO -->
         <div x-show="tab === 'torneo'" class="rounded-xl border border-slate-200 bg-white p-6 shadow-2xs">
-            <h2 class="text-base font-black text-slate-900 mb-4">Información General del Torneo</h2>
-            <form action="{{ route('admin.torneo.update') }}" method="POST" class="space-y-4 max-w-2xl">
+            <h2 class="text-base font-black text-slate-900 mb-4">Información General del Torneo, Logo y Portada</h2>
+            <form action="{{ route('admin.torneo.update') }}" method="POST" enctype="multipart/form-data" class="space-y-5 max-w-3xl">
                 @csrf
                 <div>
                     <label class="block text-xs font-bold uppercase text-slate-700 mb-1">Nombre Oficial del Torneo</label>
@@ -110,6 +110,44 @@
                     <label class="block text-xs font-bold uppercase text-slate-700 mb-1">Entidad Organizadora</label>
                     <input type="text" name="organizador" value="{{ $torneo->organizador }}" required class="w-full rounded-lg border border-slate-300 px-3.5 py-2 text-sm text-slate-900 focus:border-slate-900 focus:outline-none" />
                 </div>
+
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-5 border-y border-slate-200 py-4 bg-slate-50/50 p-4 rounded-xl">
+                    <!-- Logotipo del Torneo -->
+                    <div>
+                        <label class="block text-xs font-black uppercase text-slate-800 mb-1">Logotipo del Torneo / Institución</label>
+                        <p class="text-[11px] text-slate-500 mb-2">Sube una imagen o ingresa una URL directa (PNG, JPG, SVG).</p>
+                        
+                        @if($torneo->logo_url)
+                            <div class="mb-2 flex items-center gap-3 p-2 bg-white rounded-lg border border-slate-200">
+                                <img src="{{ $torneo->logo_url }}" alt="Logo actual" class="size-10 object-contain" />
+                                <span class="text-xs text-slate-600 font-semibold truncate">{{ $torneo->logo_url }}</span>
+                            </div>
+                        @endif
+
+                        <div class="space-y-2">
+                            <input type="file" name="logo_file" accept="image/*" class="w-full text-xs text-slate-600 file:mr-2 file:py-1.5 file:px-3 file:rounded-md file:border-0 file:text-xs file:font-black file:bg-slate-900 file:text-white hover:file:bg-slate-800 cursor-pointer" />
+                            <input type="text" name="logo_url" value="{{ $torneo->logo_url }}" placeholder="O ingresa URL externa..." class="w-full rounded-lg border border-slate-300 px-3 py-1.5 text-xs text-slate-900 focus:border-slate-900 focus:outline-none" />
+                        </div>
+                    </div>
+
+                    <!-- Imagen de Portada Oficial (Hero Banner) -->
+                    <div>
+                        <label class="block text-xs font-black uppercase text-slate-800 mb-1">Imagen de Portada (Hero Banner)</label>
+                        <p class="text-[11px] text-slate-500 mb-2">Banner principal visible en la portada del sitio web.</p>
+                        
+                        @if($torneo->portada_url)
+                            <div class="mb-2 rounded-lg border border-slate-200 overflow-hidden h-20 bg-slate-100 relative">
+                                <img src="{{ $torneo->portada_url }}" alt="Portada actual" class="h-full w-full object-cover" />
+                            </div>
+                        @endif
+
+                        <div class="space-y-2">
+                            <input type="file" name="portada_file" accept="image/*" class="w-full text-xs text-slate-600 file:mr-2 file:py-1.5 file:px-3 file:rounded-md file:border-0 file:text-xs file:font-black file:bg-slate-900 file:text-white hover:file:bg-slate-800 cursor-pointer" />
+                            <input type="text" name="portada_url" value="{{ $torneo->portada_url }}" placeholder="O ingresa URL externa..." class="w-full rounded-lg border border-slate-300 px-3 py-1.5 text-xs text-slate-900 focus:border-slate-900 focus:outline-none" />
+                        </div>
+                    </div>
+                </div>
+
                 <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
                     <div>
                         <label class="block text-xs font-bold uppercase text-slate-700 mb-1">Sede Principal</label>
@@ -135,8 +173,10 @@
         <!-- 2. PESTAÑA: DEPORTES -->
         <div x-show="tab === 'deportes'" class="space-y-6">
             <div class="rounded-xl border border-slate-200 bg-white p-6 shadow-2xs">
-                <h2 class="text-base font-black text-slate-900 mb-4">Añadir o Editar Disciplina Deportiva</h2>
-                <form action="{{ route('admin.deporte.guardar') }}" method="POST" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4">
+                <h2 class="text-base font-black text-slate-900 mb-1">Añadir o Editar Disciplina Deportiva</h2>
+                <p class="text-xs text-slate-500 mb-4">Puedes registrar el deporte y adjuntar tanto la foto principal como una foto de referencia / escenario.</p>
+
+                <form action="{{ route('admin.deporte.guardar') }}" method="POST" enctype="multipart/form-data" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4">
                     @csrf
                     <div>
                         <label class="block text-xs font-bold uppercase text-slate-700 mb-1">Nombre del Deporte</label>
@@ -154,7 +194,22 @@
                         <label class="block text-xs font-bold uppercase text-slate-700 mb-1">Sede Principal</label>
                         <input type="text" name="sede_principal" placeholder="Ej. Coliseo Puno" required class="w-full rounded-lg border border-slate-300 px-3.5 py-2 text-xs text-slate-900 focus:border-slate-900 focus:outline-none" />
                     </div>
-                    <div class="sm:col-span-2 md:col-span-3">
+
+                    <!-- Foto Principal -->
+                    <div class="sm:col-span-2 bg-slate-50 p-3 rounded-lg border border-slate-200">
+                        <label class="block text-xs font-bold uppercase text-slate-800 mb-1">Foto Principal / Banner</label>
+                        <input type="file" name="foto_file" accept="image/*" class="w-full text-xs text-slate-600 mb-2 file:mr-2 file:py-1 file:px-2.5 file:rounded-md file:border-0 file:text-xs file:font-bold file:bg-slate-900 file:text-white cursor-pointer" />
+                        <input type="text" name="foto_url" placeholder="O ingresa URL externa..." class="w-full rounded-lg border border-slate-300 px-3 py-1.5 text-xs text-slate-900 focus:border-slate-900 focus:outline-none" />
+                    </div>
+
+                    <!-- Foto de Referencia Adicional -->
+                    <div class="sm:col-span-2 bg-slate-50 p-3 rounded-lg border border-slate-200">
+                        <label class="block text-xs font-bold uppercase text-slate-800 mb-1">Foto de Referencia / Escenario</label>
+                        <input type="file" name="foto_referencia_file" accept="image/*" class="w-full text-xs text-slate-600 mb-2 file:mr-2 file:py-1 file:px-2.5 file:rounded-md file:border-0 file:text-xs file:font-bold file:bg-slate-900 file:text-white cursor-pointer" />
+                        <input type="text" name="foto_referencia_url" placeholder="O ingresa URL externa de referencia..." class="w-full rounded-lg border border-slate-300 px-3 py-1.5 text-xs text-slate-900 focus:border-slate-900 focus:outline-none" />
+                    </div>
+
+                    <div class="sm:col-span-3">
                         <label class="block text-xs font-bold uppercase text-slate-700 mb-1">Descripción</label>
                         <input type="text" name="descripcion" placeholder="Detalle de la competencia..." class="w-full rounded-lg border border-slate-300 px-3.5 py-2 text-xs text-slate-900 focus:border-slate-900 focus:outline-none" />
                     </div>
@@ -172,6 +227,7 @@
                     <thead class="border-b border-slate-200 bg-slate-50 text-[11px] font-black uppercase text-slate-500">
                         <tr>
                             <th class="py-3 pl-4 pr-3">Nombre</th>
+                            <th class="px-3 py-3">Imágenes</th>
                             <th class="px-3 py-3">Categoría</th>
                             <th class="px-3 py-3">Series Creadas</th>
                             <th class="px-3 py-3">Sede</th>
@@ -184,6 +240,23 @@
                             <tr class="hover:bg-slate-50">
                                 <td class="py-3 pl-4 pr-3 font-extrabold text-slate-900">
                                     {{ $d->nombre }}
+                                </td>
+                                <td class="px-3 py-3">
+                                    <div class="flex items-center gap-2">
+                                        @if($d->foto_url)
+                                            <a href="{{ $d->foto_url }}" target="_blank" title="Foto Principal">
+                                                <img src="{{ $d->foto_url }}" alt="Foto" class="size-7 rounded object-cover border border-slate-200" />
+                                            </a>
+                                        @endif
+                                        @if($d->foto_referencia_url)
+                                            <a href="{{ $d->foto_referencia_url }}" target="_blank" title="Foto de Referencia">
+                                                <img src="{{ $d->foto_referencia_url }}" alt="Referencia" class="size-7 rounded object-cover border-2 border-blue-400" />
+                                            </a>
+                                        @endif
+                                        @if(!$d->foto_url && !$d->foto_referencia_url)
+                                            <span class="text-[10px] text-slate-400">Sin fotos</span>
+                                        @endif
+                                    </div>
                                 </td>
                                 <td class="px-3 py-3 font-semibold text-slate-600">
                                     {{ $d->categoria }}
@@ -216,8 +289,10 @@
         <!-- 3. PESTAÑA: DELEGACIONES -->
         <div x-show="tab === 'equipos'" class="space-y-6">
             <div class="rounded-xl border border-slate-200 bg-white p-6 shadow-2xs">
-                <h2 class="text-base font-black text-slate-900 mb-4">Añadir Nueva Delegación / UGEL</h2>
-                <form action="{{ route('admin.delegacion.guardar') }}" method="POST" class="grid grid-cols-1 sm:grid-cols-4 gap-4">
+                <h2 class="text-base font-black text-slate-900 mb-1">Añadir o Editar Delegación / UGEL</h2>
+                <p class="text-xs text-slate-500 mb-4">Registra la delegación y añade su escudo o logotipo oficial para mostrarlo en las tablas y fixtures.</p>
+
+                <form action="{{ route('admin.delegacion.guardar') }}" method="POST" enctype="multipart/form-data" class="grid grid-cols-1 sm:grid-cols-4 gap-4">
                     @csrf
                     <div class="sm:col-span-2">
                         <label class="block text-xs font-bold uppercase text-slate-700 mb-1">Nombre Completo de la Institución</label>
@@ -231,6 +306,16 @@
                         <label class="block text-xs font-bold uppercase text-slate-700 mb-1">Provincia</label>
                         <input type="text" name="provincia" placeholder="Ej. Puno" required class="w-full rounded-lg border border-slate-300 px-3.5 py-2 text-xs text-slate-900 focus:border-slate-900 focus:outline-none" />
                     </div>
+
+                    <!-- Logotipo / Escudo -->
+                    <div class="sm:col-span-4 bg-slate-50 p-3 rounded-lg border border-slate-200">
+                        <label class="block text-xs font-bold uppercase text-slate-800 mb-1">Logotipo / Escudo Oficial</label>
+                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                            <input type="file" name="logo_file" accept="image/*" class="w-full text-xs text-slate-600 file:mr-2 file:py-1 file:px-2.5 file:rounded-md file:border-0 file:text-xs file:font-bold file:bg-slate-900 file:text-white cursor-pointer" />
+                            <input type="text" name="logo_url" placeholder="O ingresa URL externa de imagen..." class="w-full rounded-lg border border-slate-300 px-3 py-1.5 text-xs text-slate-900 focus:border-slate-900 focus:outline-none" />
+                        </div>
+                    </div>
+
                     <div class="sm:col-span-4 flex justify-end">
                         <button type="submit" class="inline-flex items-center gap-1.5 rounded-lg bg-slate-900 px-5 py-2 text-xs font-bold text-white hover:bg-slate-800 transition-colors cursor-pointer">
                             <span>Guardar Delegación</span>
@@ -244,7 +329,8 @@
                 <table class="w-full text-left text-xs">
                     <thead class="border-b border-slate-200 bg-slate-50 text-[11px] font-black uppercase text-slate-500">
                         <tr>
-                            <th class="py-3 pl-4 pr-3">Nombre</th>
+                            <th class="py-3 pl-4 pr-3">Logo</th>
+                            <th class="py-3 px-3">Nombre</th>
                             <th class="px-3 py-3">Siglas</th>
                             <th class="px-3 py-3">Provincia</th>
                             <th class="px-3 py-3 text-center">Partidos (PJ)</th>
@@ -255,7 +341,16 @@
                     <tbody class="divide-y divide-slate-100">
                         @foreach($delegaciones as $del)
                             <tr class="hover:bg-slate-50">
-                                <td class="py-3 pl-4 pr-3 font-extrabold text-slate-900">
+                                <td class="py-3 pl-4 pr-2">
+                                    @if($del->logo_url)
+                                        <img src="{{ $del->logo_url }}" alt="{{ $del->siglas }}" class="size-7 rounded object-contain border border-slate-200" />
+                                    @else
+                                        <span class="grid size-7 place-items-center rounded bg-slate-100 text-slate-600 text-[10px] font-bold">
+                                            {{ substr($del->siglas, 0, 2) }}
+                                        </span>
+                                    @endif
+                                </td>
+                                <td class="py-3 px-3 font-extrabold text-slate-900">
                                     {{ $del->nombre }}
                                 </td>
                                 <td class="px-3 py-3 font-bold text-blue-600">

@@ -18,6 +18,7 @@ class Delegacion extends Model
         'nombre',
         'siglas',
         'provincia',
+        'logo_url',
         'puntos',
         'pj',
         'pg',

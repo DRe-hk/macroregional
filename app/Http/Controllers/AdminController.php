@@ -41,14 +41,34 @@ class AdminController extends Controller
             'subtitulo' => ['required', 'string', 'max:255'],
             'organizador' => ['required', 'string', 'max:255'],
             'sede_principal' => ['required', 'string', 'max:255'],
+            'logo_url' => ['nullable', 'string', 'max:500'],
+            'logo_file' => ['nullable', 'image', 'mimes:jpeg,png,jpg,gif,svg,webp', 'max:5120'],
+            'portada_url' => ['nullable', 'string', 'max:500'],
+            'portada_file' => ['nullable', 'image', 'mimes:jpeg,png,jpg,gif,svg,webp', 'max:10240'],
             'anio' => ['required', 'integer', 'min:2020', 'max:2050'],
             'avance_porcentaje' => ['required', 'integer', 'min:0', 'max:100'],
         ]);
 
+        if ($request->hasFile('logo_file')) {
+            $file = $request->file('logo_file');
+            $fileName = 'torneo_logo_'.time().'.'.$file->getClientOriginalExtension();
+            $file->move(public_path('uploads/torneo'), $fileName);
+            $data['logo_url'] = '/uploads/torneo/'.$fileName;
+        }
+
+        if ($request->hasFile('portada_file')) {
+            $file = $request->file('portada_file');
+            $fileName = 'torneo_portada_'.time().'.'.$file->getClientOriginalExtension();
+            $file->move(public_path('uploads/torneo'), $fileName);
+            $data['portada_url'] = '/uploads/torneo/'.$fileName;
+        }
+
+        unset($data['logo_file'], $data['portada_file']);
+
         $torneo = Torneo::actual();
         $torneo->update($data);
 
-        return back()->with('success', 'Información general del torneo actualizada.');
+        return back()->with('success', 'Información general del torneo y portadas actualizadas.');
     }
 
     public function guardarDeporte(Request $request): RedirectResponse
@@ -58,13 +78,34 @@ class AdminController extends Controller
             'nombre' => ['required', 'string', 'max:100'],
             'categoria' => ['required', 'string', 'max:50'],
             'color_acento' => ['required', 'string', 'max:20'],
-            'foto_url' => ['nullable', 'url', 'max:500'],
+            'foto_url' => ['nullable', 'string', 'max:500'],
+            'foto_file' => ['nullable', 'image', 'mimes:jpeg,png,jpg,gif,svg,webp', 'max:5120'],
+            'foto_referencia_url' => ['nullable', 'string', 'max:500'],
+            'foto_referencia_file' => ['nullable', 'image', 'mimes:jpeg,png,jpg,gif,svg,webp', 'max:5120'],
             'descripcion' => ['nullable', 'string', 'max:500'],
             'sede_principal' => ['required', 'string', 'max:150'],
         ]);
 
         $slug = Str::slug($data['nombre']);
         $id = ! empty($data['id']) ? $data['id'] : $slug;
+
+        $fotoUrl = $data['foto_url'] ?? null;
+        if ($request->hasFile('foto_file')) {
+            $file = $request->file('foto_file');
+            $fileName = 'deporte_'.$slug.'_'.time().'.'.$file->getClientOriginalExtension();
+            $file->move(public_path('uploads/disciplinas'), $fileName);
+            $fotoUrl = '/uploads/disciplinas/'.$fileName;
+        }
+
+        $fotoRefUrl = $data['foto_referencia_url'] ?? null;
+        if ($request->hasFile('foto_referencia_file')) {
+            $file = $request->file('foto_referencia_file');
+            $fileName = 'ref_'.$slug.'_'.time().'.'.$file->getClientOriginalExtension();
+            $file->move(public_path('uploads/disciplinas'), $fileName);
+            $fotoRefUrl = '/uploads/disciplinas/'.$fileName;
+        }
+
+        $disciplinaExistente = Disciplina::find($id);
 
         $disciplina = Disciplina::updateOrCreate(
             ['id' => $id],
@@ -73,7 +114,8 @@ class AdminController extends Controller
                 'nombre' => $data['nombre'],
                 'categoria' => $data['categoria'],
                 'color_acento' => $data['color_acento'],
-                'foto_url' => $data['foto_url'] ?? 'https://images.unsplash.com/photo-1508098682722-e99c43a406b2?w=800&auto=format&fit=crop&q=80',
+                'foto_url' => $fotoUrl ?? ($disciplinaExistente?->foto_url ?? 'https://images.unsplash.com/photo-1508098682722-e99c43a406b2?w=800&auto=format&fit=crop&q=80'),
+                'foto_referencia_url' => $fotoRefUrl ?? $disciplinaExistente?->foto_referencia_url,
                 'descripcion' => $data['descripcion'] ?? '',
                 'sede_principal' => $data['sede_principal'],
             ]
@@ -89,7 +131,7 @@ class AdminController extends Controller
             ]);
         }
 
-        return back()->with('success', 'Disciplina deportiva guardada correctamente.');
+        return back()->with('success', 'Disciplina deportiva e imágenes guardadas correctamente.');
     }
 
     public function eliminarDeporte(string $id): RedirectResponse
@@ -107,9 +149,21 @@ class AdminController extends Controller
             'nombre' => ['required', 'string', 'max:100'],
             'siglas' => ['required', 'string', 'max:30'],
             'provincia' => ['required', 'string', 'max:100'],
+            'logo_url' => ['nullable', 'string', 'max:500'],
+            'logo_file' => ['nullable', 'image', 'mimes:jpeg,png,jpg,gif,svg,webp', 'max:5120'],
         ]);
 
         $id = ! empty($data['id']) ? $data['id'] : Str::slug($data['siglas']);
+
+        $logoUrl = $data['logo_url'] ?? null;
+        if ($request->hasFile('logo_file')) {
+            $file = $request->file('logo_file');
+            $fileName = 'logo_'.$id.'_'.time().'.'.$file->getClientOriginalExtension();
+            $file->move(public_path('uploads/logos'), $fileName);
+            $logoUrl = '/uploads/logos/'.$fileName;
+        }
+
+        $delExistente = Delegacion::find($id);
 
         Delegacion::updateOrCreate(
             ['id' => $id],
@@ -117,10 +171,11 @@ class AdminController extends Controller
                 'nombre' => $data['nombre'],
                 'siglas' => $data['siglas'],
                 'provincia' => $data['provincia'],
+                'logo_url' => $logoUrl ?? $delExistente?->logo_url,
             ]
         );
 
-        return back()->with('success', 'Delegación participante guardada con éxito.');
+        return back()->with('success', 'Delegación y logotipo guardados con éxito.');
     }
 
     public function eliminarDelegacion(string $id): RedirectResponse

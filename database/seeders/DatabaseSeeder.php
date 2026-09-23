@@ -25,6 +25,7 @@ class DatabaseSeeder extends Seeder
                 'subtitulo' => 'Torneo Deportivo Macroregional de Educación',
                 'organizador' => 'Comisión Macroregional DREP',
                 'sede_principal' => 'Puno / Juliaca',
+                'portada_url' => '/images/portada_macroregional.jpeg',
                 'anio' => 2026,
                 'avance_porcentaje' => 0,
             ]

@@ -48,22 +48,26 @@
             
             <!-- Logo Institucional y Título -->
             <a href="{{ route('home') }}" class="flex items-center gap-3 shrink-0 group">
-                <span class="grid size-9 sm:size-10 place-items-center rounded-lg bg-slate-900 text-white font-black text-base transition-transform group-hover:scale-105 shadow-xs">
-                    <svg class="size-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
-                        <path d="M6 9H4.5a2.5 2.5 0 0 1 0-5H6"/>
-                        <path d="M18 9h1.5a2.5 2.5 0 0 0 0-5H18"/>
-                        <path d="M4 22h16"/>
-                        <path d="M10 14.66V17c0 .55-.47.98-.97 1.21C7.85 18.75 7 20.24 7 22"/>
-                        <path d="M14 14.66V17c0 .55.47.98.97 1.21C16.15 18.75 17 20.24 17 22"/>
-                        <path d="M18 2H6v7a6 6 0 0 0 12 0V2Z"/>
-                    </svg>
-                </span>
+                @if(!empty($torneo->logo_url))
+                    <img src="{{ $torneo->logo_url }}" alt="Logo" class="size-9 sm:size-10 rounded-lg object-contain bg-white border border-slate-200 p-0.5 transition-transform group-hover:scale-105 shadow-2xs" />
+                @else
+                    <span class="grid size-9 sm:size-10 place-items-center rounded-lg bg-slate-900 text-white font-black text-base transition-transform group-hover:scale-105 shadow-xs">
+                        <svg class="size-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M6 9H4.5a2.5 2.5 0 0 1 0-5H6"/>
+                            <path d="M18 9h1.5a2.5 2.5 0 0 0 0-5H18"/>
+                            <path d="M4 22h16"/>
+                            <path d="M10 14.66V17c0 .55-.47.98-.97 1.21C7.85 18.75 7 20.24 7 22"/>
+                            <path d="M14 14.66V17c0 .55.47.98.97 1.21C16.15 18.75 17 20.24 17 22"/>
+                            <path d="M18 2H6v7a6 6 0 0 0 12 0V2Z"/>
+                        </svg>
+                    </span>
+                @endif
                 <div class="flex flex-col">
                     <span class="font-extrabold tracking-tight text-base sm:text-lg text-slate-900 leading-tight">
                         MACROREGIONAL 2026
                     </span>
                     <span class="text-[10px] font-bold text-slate-500 tracking-wider uppercase">
-                        Competencia Deportiva Oficial
+                        {{ $torneo->subtitulo ?? 'Competencia Deportiva Oficial' }}
                     </span>
                 </div>
             </a>
