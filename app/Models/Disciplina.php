@@ -27,9 +27,9 @@ class Disciplina extends Model
         'campeon_actual',
     ];
 
-    public function series(): HasMany
+    public function partidos(): HasMany
     {
-        return $this->hasMany(Serie::class, 'disciplina_id');
+        return $this->hasMany(Partido::class, 'disciplina_id');
     }
 
     public function nominas(): HasMany

@@ -137,4 +137,27 @@ class TournamentFeatureTest extends TestCase
             'logo_url' => 'https://example.com/putina-shield.png',
         ]);
     }
+
+    public function test_admin_can_schedule_match_by_discipline(): void
+    {
+        $admin = User::where('username', 'admin')->first();
+
+        $response = $this->actingAs($admin)->post('/admin/partidos', [
+            'disciplina_id' => 'futbol-libre',
+            'ronda_numero' => 1,
+            'ronda_nombre' => 'Cuartos de Final',
+            'local_id' => 'puno',
+            'visitante_id' => 'san-roman',
+            'horario' => '10:00 AM',
+            'cancha' => 'Estadio Principal',
+        ]);
+
+        $response->assertSessionHas('success');
+        $this->assertDatabaseHas('partidos', [
+            'disciplina_id' => 'futbol-libre',
+            'ronda_nombre' => 'Cuartos de Final',
+            'local_id' => 'puno',
+            'visitante_id' => 'san-roman',
+        ]);
+    }
 }

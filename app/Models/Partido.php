@@ -15,7 +15,7 @@ class Partido extends Model
 
     protected $fillable = [
         'id',
-        'serie_id',
+        'disciplina_id',
         'ronda_numero',
         'ronda_nombre',
         'local_id',
@@ -29,9 +29,9 @@ class Partido extends Model
         'observaciones',
     ];
 
-    public function serie(): BelongsTo
+    public function disciplina(): BelongsTo
     {
-        return $this->belongsTo(Serie::class, 'serie_id');
+        return $this->belongsTo(Disciplina::class, 'disciplina_id');
     }
 
     public function local(): BelongsTo

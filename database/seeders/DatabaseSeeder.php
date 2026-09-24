@@ -4,7 +4,6 @@ namespace Database\Seeders;
 
 use App\Models\Delegacion;
 use App\Models\Disciplina;
-use App\Models\Serie;
 use App\Models\Torneo;
 use App\Models\User;
 use Illuminate\Database\Seeder;
@@ -69,7 +68,7 @@ class DatabaseSeeder extends Seeder
             );
         }
 
-        // 3. Disciplinas Deportivas y sus Series
+        // 3. Disciplinas Deportivas Oficiales (Sin Series)
         $disciplinas = [
             [
                 'id' => 'futbol-libre',
@@ -80,10 +79,6 @@ class DatabaseSeeder extends Seeder
                 'foto_url' => 'https://images.unsplash.com/photo-1508098682722-e99c43a406b2?w=800&auto=format&fit=crop&q=80',
                 'descripcion' => 'Torneo de fútbol varones categoría libre en cancha reglamentaria.',
                 'sede_principal' => 'Estadio Enrique Torres Belón · Puno',
-                'series' => [
-                    ['letra' => 'A', 'nombre' => 'Serie A', 'sede_nombre' => 'Estadio Enrique Torres Belón'],
-                    ['letra' => 'B', 'nombre' => 'Serie B', 'sede_nombre' => 'Estadio Carolino Puno'],
-                ],
             ],
             [
                 'id' => 'voley-damas',
@@ -94,10 +89,6 @@ class DatabaseSeeder extends Seeder
                 'foto_url' => 'https://images.unsplash.com/photo-1612872087720-bb876e2e67d1?w=800&auto=format&fit=crop&q=80',
                 'descripcion' => 'Torneo femenino oficial de voleibol en coliseo cerrado.',
                 'sede_principal' => 'Coliseo Eduardo Rodríguez Ponce de León',
-                'series' => [
-                    ['letra' => 'A', 'nombre' => 'Serie A', 'sede_nombre' => 'Coliseo Eduardo Rodríguez Ponce de León'],
-                    ['letra' => 'B', 'nombre' => 'Serie B', 'sede_nombre' => 'Coliseo San Román · Juliaca'],
-                ],
             ],
             [
                 'id' => 'futsal-varones',
@@ -108,9 +99,6 @@ class DatabaseSeeder extends Seeder
                 'foto_url' => 'https://images.unsplash.com/photo-1574629810360-7efbbe195018?w=800&auto=format&fit=crop&q=80',
                 'descripcion' => 'Fútbol de salón en losa deportiva reglamentaria.',
                 'sede_principal' => 'Polideportivo San Román · Juliaca',
-                'series' => [
-                    ['letra' => 'A', 'nombre' => 'Serie A', 'sede_nombre' => 'Polideportivo San Román'],
-                ],
             ],
             [
                 'id' => 'futsal-damas',
@@ -121,9 +109,6 @@ class DatabaseSeeder extends Seeder
                 'foto_url' => 'https://images.unsplash.com/photo-1517466787929-bc90951d0974?w=800&auto=format&fit=crop&q=80',
                 'descripcion' => 'Competencia de fútbol sala para trabajadoras de educación.',
                 'sede_principal' => 'Complejo Deportivo Chanu Chanu · Puno',
-                'series' => [
-                    ['letra' => 'A', 'nombre' => 'Serie A', 'sede_nombre' => 'Complejo Deportivo Chanu Chanu'],
-                ],
             ],
             [
                 'id' => 'voley-mixto',
@@ -134,9 +119,6 @@ class DatabaseSeeder extends Seeder
                 'foto_url' => 'https://images.unsplash.com/photo-1592656094267-764a45160876?w=800&auto=format&fit=crop&q=80',
                 'descripcion' => 'Torneo integrador de vóley mixto.',
                 'sede_principal' => 'Coliseo Municipal de Ilave',
-                'series' => [
-                    ['letra' => 'A', 'nombre' => 'Serie A', 'sede_nombre' => 'Coliseo Municipal de Ilave'],
-                ],
             ],
             [
                 'id' => 'basquet-libre',
@@ -147,30 +129,11 @@ class DatabaseSeeder extends Seeder
                 'foto_url' => 'https://images.unsplash.com/photo-1546519638-68e109498ffc?w=800&auto=format&fit=crop&q=80',
                 'descripcion' => 'Campeonato oficial de baloncesto interinstitucional.',
                 'sede_principal' => 'Coliseo Cerrado de Puno',
-                'series' => [
-                    ['letra' => 'A', 'nombre' => 'Serie A', 'sede_nombre' => 'Coliseo Cerrado de Puno'],
-                ],
             ],
         ];
 
         foreach ($disciplinas as $dData) {
-            $series = $dData['series'];
-            unset($dData['series']);
-
-            $disc = Disciplina::updateOrCreate(['id' => $dData['id']], $dData);
-
-            foreach ($series as $sData) {
-                Serie::firstOrCreate(
-                    [
-                        'disciplina_id' => $disc->id,
-                        'letra' => $sData['letra'],
-                    ],
-                    [
-                        'nombre' => $sData['nombre'],
-                        'sede_nombre' => $sData['sede_nombre'],
-                    ]
-                );
-            }
+            Disciplina::updateOrCreate(['id' => $dData['id']], $dData);
         }
 
         // 4. Usuarios del Sistema

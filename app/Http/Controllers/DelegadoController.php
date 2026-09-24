@@ -21,7 +21,7 @@ class DelegadoController extends Controller
         $user = Auth::user();
         $delegacion = $user->delegacion_id ? Delegacion::find($user->delegacion_id) : null;
 
-        $partidos = Partido::with(['serie.disciplina', 'local', 'visitante', 'ganador'])
+        $partidos = Partido::with(['disciplina', 'local', 'visitante', 'ganador'])
             ->where(function ($q) use ($user) {
                 $q->where('local_id', $user->delegacion_id)
                     ->orWhere('visitante_id', $user->delegacion_id);

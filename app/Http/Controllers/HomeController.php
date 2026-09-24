@@ -16,7 +16,7 @@ class HomeController extends Controller
     public function index(): View
     {
         $torneo = Torneo::actual();
-        $disciplinas = Disciplina::with(['series.partidos'])->get();
+        $disciplinas = Disciplina::with(['partidos'])->get();
         $totalEquipos = Delegacion::count();
 
         return view('home', compact('torneo', 'disciplinas', 'totalEquipos'));
@@ -74,26 +74,21 @@ class HomeController extends Controller
     {
         $torneo = Torneo::actual();
         $disciplina = Disciplina::with([
-            'series.partidos.local',
-            'series.partidos.visitante',
-            'series.partidos.ganador',
+            'partidos.local',
+            'partidos.visitante',
+            'partidos.ganador',
         ])->where('slug', $slug)->firstOrFail();
 
-        $letraActiva = strtoupper($request->query('serie', $disciplina->series->first()?->letra ?? 'A'));
-        $serieSeleccionada = $disciplina->series->firstWhere('letra', $letraActiva) ?? $disciplina->series->first();
-
-        // Agrupar partidos por ronda_numero
+        // Agrupar partidos por ronda_numero directamente para la disciplina
         $rondasMap = [];
-        if ($serieSeleccionada) {
-            foreach ($serieSeleccionada->partidos as $partido) {
-                $rondasMap[$partido->ronda_numero][] = $partido;
-            }
-            ksort($rondasMap);
+        foreach ($disciplina->partidos as $partido) {
+            $rondasMap[$partido->ronda_numero][] = $partido;
         }
+        ksort($rondasMap);
 
-        // Obtener tabla de posiciones individual para esta serie o disciplina
-        $tablaPosiciones = $this->tournamentService->obtenerTablaPorDisciplina($disciplina, $serieSeleccionada);
+        // Obtener tabla de posiciones individual para esta disciplina
+        $tablaPosiciones = $this->tournamentService->obtenerTablaPorDisciplina($disciplina);
 
-        return view('disciplina', compact('torneo', 'disciplina', 'serieSeleccionada', 'letraActiva', 'rondasMap', 'tablaPosiciones'));
+        return view('disciplina', compact('torneo', 'disciplina', 'rondasMap', 'tablaPosiciones'));
     }
 }

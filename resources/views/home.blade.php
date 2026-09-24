@@ -117,7 +117,7 @@
                     <span>Disciplinas Deportivas</span>
                 </h2>
                 <p class="text-xs sm:text-sm text-slate-500 font-medium mt-0.5">
-                    Selecciona un deporte para ver sus series, fixture y árbol de eliminatorias en vivo.
+                    Selecciona un deporte para ver su fixture, llaves y tabla de posiciones en vivo.
                 </p>
             </div>
 
@@ -181,7 +181,7 @@
 
                             <div class="mt-4 pt-4 border-t border-slate-100 flex items-center justify-between text-xs">
                                 <span class="font-bold text-slate-500">
-                                    {{ $disciplina->series->count() }} {{ $disciplina->series->count() === 1 ? 'Serie' : 'Series' }}
+                                    {{ $disciplina->partidos->count() }} {{ $disciplina->partidos->count() === 1 ? 'Partido' : 'Partidos' }}
                                 </span>
 
                                 <a

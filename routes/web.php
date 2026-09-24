@@ -13,9 +13,9 @@ Route::get('/equipos', [HomeController::class, 'equipos'])->name('equipos');
 Route::get('/campeones', [HomeController::class, 'campeones'])->name('campeones');
 Route::get('/d/{slug}', [HomeController::class, 'disciplina'])->name('disciplina.show');
 
-// --- Autenticación Unificada (Delegados y Admin) ---
+// --- Autenticación Unificada (Delegados y Admin) con Rate Limiting ---
 Route::get('/entrar', [AuthController::class, 'mostrarLogin'])->name('login');
-Route::post('/entrar', [AuthController::class, 'login'])->name('login.post');
+Route::post('/entrar', [AuthController::class, 'login'])->middleware('throttle:5,1')->name('login.post');
 Route::post('/logout', [AuthController::class, 'logout'])->name('logout');
 
 // --- Portal Restringido de Delegados de UGEL ---

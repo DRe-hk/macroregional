@@ -63,27 +63,15 @@
         </div>
     </div>
 
-    <!-- Contenedor Principal: Series, Bracket y Tabla de Posiciones -->
+    <!-- Contenedor Principal: Bracket y Tabla de Posiciones -->
     <div class="mx-auto max-w-[1360px] px-4 sm:px-6 mt-8 space-y-6" x-data="{ vistaActiva: 'bracket' }">
         
-        <!-- Barra de Controles: Series y Selector de Vista (Bracket vs Tabla) -->
+        <!-- Barra de Controles: Selector de Vista (Bracket vs Tabla) -->
         <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-slate-200 pb-3">
-            <!-- Selector de Series -->
-            @if($disciplina->series->count() > 0)
-                <div class="flex items-center gap-2 overflow-x-auto">
-                    @foreach($disciplina->series as $s)
-                        @php
-                            $esActiva = $s->letra === $letraActiva;
-                        @endphp
-                        <a
-                            href="{{ route('disciplina.show', ['slug' => $disciplina->slug, 'serie' => $s->letra]) }}"
-                            class="flex items-center gap-1.5 px-4 py-2 text-xs font-black uppercase tracking-wider rounded-lg transition-colors shrink-0 {{ $esActiva ? 'bg-slate-900 text-white shadow-2xs' : 'bg-white text-slate-600 hover:bg-slate-100 border border-slate-200' }}"
-                        >
-                            <span>{{ $s->nombre }}</span>
-                        </a>
-                    @endforeach
-                </div>
-            @endif
+            <div>
+                <h2 class="text-lg font-black text-slate-900">Encuentros y Clasificación Oficial</h2>
+                <p class="text-xs text-slate-500 font-medium">Fixture unificado y tabla de puntuación para {{ $disciplina->nombre }}.</p>
+            </div>
 
             <!-- Selector de Vista: Bracket vs Tabla Individual -->
             <div class="inline-flex rounded-xl bg-slate-100 p-1 border border-slate-200 shrink-0">
@@ -110,19 +98,6 @@
 
         <!-- VISTA 1: Árbol de Eliminatorias / Bracket -->
         <div x-show="vistaActiva === 'bracket'" class="space-y-4">
-            @if($serieSeleccionada)
-                <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-100 pb-2">
-                    <div>
-                        <h2 class="text-xl font-black text-slate-900">{{ $serieSeleccionada->nombre }}</h2>
-                    </div>
-
-                    @if($serieSeleccionada->sede_nombre)
-                        <span class="inline-flex items-center gap-1.5 text-xs font-semibold text-slate-600 bg-white border border-slate-200 px-3 py-1.5 rounded-lg shadow-2xs">
-                            <svg class="size-3.5 text-slate-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z"/><circle cx="12" cy="10" r="3"/></svg>
-                            <span>{{ $serieSeleccionada->sede_nombre }}</span>
-                        </span>
-                    @endif
-                </div>
 
                 @if(count($rondasMap) > 0)
                     <div class="overflow-x-auto rounded-xl border border-slate-200 bg-white p-5 bracket-scroll">
@@ -216,15 +191,10 @@
                 @else
                     <div class="rounded-xl border border-dashed border-slate-300 bg-slate-50 p-8 text-center">
                         <p class="text-sm font-semibold text-slate-600">
-                            No hay partidos programados todavía en esta serie.
+                            No hay partidos programados todavía para esta disciplina.
                         </p>
                     </div>
                 @endif
-            @else
-                <div class="rounded-xl border border-dashed border-slate-300 bg-slate-50 p-8 text-center">
-                    <p class="text-sm font-semibold text-slate-600">No hay series configuradas para esta disciplina.</p>
-                </div>
-            @endif
         </div>
 
         <!-- VISTA 2: Tabla de Posiciones Individual por Disciplina -->
@@ -235,7 +205,7 @@
                         Tabla de Posiciones · {{ $disciplina->nombre }}
                     </h2>
                     <p class="text-xs text-slate-500 font-medium mt-0.5">
-                        Estadísticas exclusivas de {{ $disciplina->nombre }} en {{ $serieSeleccionada ? $serieSeleccionada->nombre : 'la competencia' }}.
+                        Estadísticas y puntuación oficial en tiempo real para {{ $disciplina->nombre }}.
                     </p>
                 </div>
             </div>

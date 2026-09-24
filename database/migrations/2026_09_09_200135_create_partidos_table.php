@@ -13,7 +13,8 @@ return new class extends Migration
     {
         Schema::create('partidos', function (Blueprint $table) {
             $table->string('id')->primary();
-            $table->foreignId('serie_id')->constrained('series')->cascadeOnDelete();
+            $table->string('disciplina_id');
+            $table->foreign('disciplina_id')->references('id')->on('disciplinas')->cascadeOnDelete();
             $table->integer('ronda_numero')->default(1);
             $table->string('ronda_nombre')->default('Ronda 1');
             $table->string('local_id')->nullable();

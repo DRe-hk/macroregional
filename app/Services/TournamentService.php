@@ -5,7 +5,6 @@ namespace App\Services;
 use App\Models\Delegacion;
 use App\Models\Disciplina;
 use App\Models\Partido;
-use App\Models\Serie;
 
 class TournamentService
 {
@@ -114,15 +113,12 @@ class TournamentService
             }
             $partido->ganador_id = $ganadorId;
 
-            // Si es la final de una serie o disciplina, registrar campeón actual
+            // Si es la final de la disciplina, registrar campeón actual
             if ($ganadorId && str_contains(strtolower($partido->ronda_nombre), 'final')) {
-                $serie = $partido->serie;
-                if ($serie) {
-                    $disciplina = $serie->disciplina;
-                    $ganador = Delegacion::find($ganadorId);
-                    if ($disciplina && $ganador) {
-                        $disciplina->update(['campeon_actual' => $ganador->nombre]);
-                    }
+                $disciplina = $partido->disciplina;
+                $ganador = Delegacion::find($ganadorId);
+                if ($disciplina && $ganador) {
+                    $disciplina->update(['campeon_actual' => $ganador->nombre]);
                 }
             }
         } else {
@@ -135,15 +131,13 @@ class TournamentService
     }
 
     /**
-     * Obtiene la tabla de posiciones individual calculada para una disciplina (o serie específica).
+     * Obtiene la tabla de posiciones individual calculada para una disciplina deportiva.
      *
      * @return array<int, array{pos: int, delegacion: Delegacion, pj: int, pg: int, pe: int, pp: int, gf: int, gc: int, dg: int, puntos: int}>
      */
-    public function obtenerTablaPorDisciplina(Disciplina $disciplina, ?Serie $serie = null): array
+    public function obtenerTablaPorDisciplina(Disciplina $disciplina): array
     {
-        $seriesIds = $serie ? collect([$serie->id]) : $disciplina->series()->pluck('id');
-
-        $partidos = Partido::whereIn('serie_id', $seriesIds)->get();
+        $partidos = Partido::where('disciplina_id', $disciplina->id)->get();
         $partidosFinalizados = $partidos->where('estado', 'FINALIZADO');
 
         // Obtener IDs de delegaciones que participan en estos partidos

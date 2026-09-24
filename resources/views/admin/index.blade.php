@@ -229,7 +229,7 @@
                             <th class="py-3 pl-4 pr-3">Nombre</th>
                             <th class="px-3 py-3">Imágenes</th>
                             <th class="px-3 py-3">Categoría</th>
-                            <th class="px-3 py-3">Series Creadas</th>
+                            <th class="px-3 py-3">Partidos</th>
                             <th class="px-3 py-3">Sede</th>
                             <th class="px-3 py-3">Campeón Actual</th>
                             <th class="py-3 pl-3 pr-4 text-right">Acción</th>
@@ -262,7 +262,9 @@
                                     {{ $d->categoria }}
                                 </td>
                                 <td class="px-3 py-3 font-bold text-slate-700">
-                                    {{ $d->series->pluck('nombre')->join(', ') ?: 'Sin series' }}
+                                    <span class="inline-flex items-center gap-1 rounded bg-slate-100 px-2 py-0.5 text-xs font-extrabold text-slate-800">
+                                        {{ $d->partidos->count() }} partidos
+                                    </span>
                                 </td>
                                 <td class="px-3 py-3 text-slate-500">
                                     {{ $d->sede_principal }}
@@ -271,7 +273,7 @@
                                     {{ $d->campeon_actual ?: '-' }}
                                 </td>
                                 <td class="py-3 pl-3 pr-4 text-right">
-                                    <form action="{{ route('admin.deporte.eliminar', $d->id) }}" method="POST" onsubmit="return confirm('¿Eliminar este deporte? Se borrarán sus series y partidos asociados.');" class="inline">
+                                    <form action="{{ route('admin.deporte.eliminar', $d->id) }}" method="POST" onsubmit="return confirm('¿Eliminar esta disciplina? Se borrarán sus partidos asociados.');" class="inline">
                                         @csrf
                                         @method('DELETE')
                                         <button type="submit" class="text-rose-600 hover:text-rose-800 font-bold cursor-pointer">
@@ -390,14 +392,10 @@
                 <form action="{{ route('admin.partido.guardar') }}" method="POST" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4">
                     @csrf
                     <div>
-                        <label class="block text-xs font-bold uppercase text-slate-700 mb-1">Serie / Disciplina</label>
-                        <select name="serie_id" required class="w-full rounded-lg border border-slate-300 px-3.5 py-2 text-xs font-semibold text-slate-900 focus:border-slate-900 focus:outline-none">
+                        <label class="block text-xs font-bold uppercase text-slate-700 mb-1">Disciplina Deportiva</label>
+                        <select name="disciplina_id" required class="w-full rounded-lg border border-slate-300 px-3.5 py-2 text-xs font-semibold text-slate-900 focus:border-slate-900 focus:outline-none">
                             @foreach($disciplinas as $d)
-                                <optgroup label="{{ $d->nombre }}">
-                                    @foreach($d->series as $s)
-                                        <option value="{{ $s->id }}">{{ $d->nombre }} - {{ $s->nombre }}</option>
-                                    @endforeach
-                                </optgroup>
+                                <option value="{{ $d->id }}">{{ $d->nombre }} ({{ $d->categoria }})</option>
                             @endforeach
                         </select>
                     </div>
@@ -457,7 +455,7 @@
                 </h3>
 
                 @php
-                    $todosPartidos = \App\Models\Partido::with(['serie.disciplina', 'local', 'visitante', 'ganador'])->orderByDesc('created_at')->get();
+                    $todosPartidos = \App\Models\Partido::with(['disciplina', 'local', 'visitante', 'ganador'])->orderByDesc('created_at')->get();
                 @endphp
 
                 @forelse($todosPartidos as $partido)
@@ -469,10 +467,10 @@
                             <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-slate-100 pb-2">
                                 <div class="flex items-center gap-2">
                                     <span class="rounded bg-slate-900 px-2 py-0.5 text-[10px] font-black uppercase text-white">
-                                        {{ $partido->serie?->disciplina?->nombre ?? 'Deporte' }}
+                                        {{ $partido->disciplina?->nombre ?? 'Deporte' }}
                                     </span>
                                     <span class="text-xs font-bold text-slate-600">
-                                        {{ $partido->serie?->nombre }} · {{ $partido->ronda_nombre }}
+                                        {{ $partido->ronda_nombre }}
                                     </span>
                                 </div>
                                 <div class="flex items-center gap-3 text-xs text-slate-500 font-semibold">

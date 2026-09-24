@@ -90,10 +90,10 @@
                         <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-slate-100 pb-3">
                             <div class="flex items-center gap-2">
                                 <span class="rounded bg-slate-900 px-2 py-0.5 text-[10px] font-black uppercase text-white">
-                                    {{ $partido->serie?->disciplina?->nombre ?? 'Deporte' }}
+                                    {{ $partido->disciplina?->nombre ?? 'Deporte' }}
                                 </span>
                                 <span class="text-xs font-bold text-slate-500">
-                                    {{ $partido->serie?->nombre }} · {{ $partido->ronda_nombre }}
+                                    {{ $partido->ronda_nombre }}
                                 </span>
                             </div>
 

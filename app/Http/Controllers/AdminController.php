@@ -5,7 +5,6 @@ namespace App\Http\Controllers;
 use App\Models\Delegacion;
 use App\Models\Disciplina;
 use App\Models\Partido;
-use App\Models\Serie;
 use App\Models\Torneo;
 use App\Models\User;
 use App\Services\TournamentService;
@@ -24,9 +23,9 @@ class AdminController extends Controller
     {
         $torneo = Torneo::actual();
         $disciplinas = Disciplina::with([
-            'series.partidos.local',
-            'series.partidos.visitante',
-            'series.partidos.ganador',
+            'partidos.local',
+            'partidos.visitante',
+            'partidos.ganador',
         ])->get();
         $delegaciones = Delegacion::orderBy('nombre')->get();
         $usuarios = User::with('delegacion')->orderBy('role')->orderBy('name')->get();
@@ -42,25 +41,19 @@ class AdminController extends Controller
             'organizador' => ['required', 'string', 'max:255'],
             'sede_principal' => ['required', 'string', 'max:255'],
             'logo_url' => ['nullable', 'string', 'max:500'],
-            'logo_file' => ['nullable', 'image', 'mimes:jpeg,png,jpg,gif,svg,webp', 'max:5120'],
+            'logo_file' => ['nullable', 'file', 'mimes:jpeg,png,jpg,webp,avif', 'max:5120'],
             'portada_url' => ['nullable', 'string', 'max:500'],
-            'portada_file' => ['nullable', 'image', 'mimes:jpeg,png,jpg,gif,svg,webp', 'max:10240'],
+            'portada_file' => ['nullable', 'file', 'mimes:jpeg,png,jpg,webp,avif', 'max:10240'],
             'anio' => ['required', 'integer', 'min:2020', 'max:2050'],
             'avance_porcentaje' => ['required', 'integer', 'min:0', 'max:100'],
         ]);
 
         if ($request->hasFile('logo_file')) {
-            $file = $request->file('logo_file');
-            $fileName = 'torneo_logo_'.time().'.'.$file->getClientOriginalExtension();
-            $file->move(public_path('uploads/torneo'), $fileName);
-            $data['logo_url'] = '/uploads/torneo/'.$fileName;
+            $data['logo_url'] = $this->almacenarImagenSegura($request->file('logo_file'), 'torneo', 'logo');
         }
 
         if ($request->hasFile('portada_file')) {
-            $file = $request->file('portada_file');
-            $fileName = 'torneo_portada_'.time().'.'.$file->getClientOriginalExtension();
-            $file->move(public_path('uploads/torneo'), $fileName);
-            $data['portada_url'] = '/uploads/torneo/'.$fileName;
+            $data['portada_url'] = $this->almacenarImagenSegura($request->file('portada_file'), 'torneo', 'portada');
         }
 
         unset($data['logo_file'], $data['portada_file']);
@@ -79,9 +72,9 @@ class AdminController extends Controller
             'categoria' => ['required', 'string', 'max:50'],
             'color_acento' => ['required', 'string', 'max:20'],
             'foto_url' => ['nullable', 'string', 'max:500'],
-            'foto_file' => ['nullable', 'image', 'mimes:jpeg,png,jpg,gif,svg,webp', 'max:5120'],
+            'foto_file' => ['nullable', 'file', 'mimes:jpeg,png,jpg,webp,avif', 'max:5120'],
             'foto_referencia_url' => ['nullable', 'string', 'max:500'],
-            'foto_referencia_file' => ['nullable', 'image', 'mimes:jpeg,png,jpg,gif,svg,webp', 'max:5120'],
+            'foto_referencia_file' => ['nullable', 'file', 'mimes:jpeg,png,jpg,webp,avif', 'max:5120'],
             'descripcion' => ['nullable', 'string', 'max:500'],
             'sede_principal' => ['required', 'string', 'max:150'],
         ]);
@@ -91,23 +84,17 @@ class AdminController extends Controller
 
         $fotoUrl = $data['foto_url'] ?? null;
         if ($request->hasFile('foto_file')) {
-            $file = $request->file('foto_file');
-            $fileName = 'deporte_'.$slug.'_'.time().'.'.$file->getClientOriginalExtension();
-            $file->move(public_path('uploads/disciplinas'), $fileName);
-            $fotoUrl = '/uploads/disciplinas/'.$fileName;
+            $fotoUrl = $this->almacenarImagenSegura($request->file('foto_file'), 'disciplinas', 'deporte_'.$slug);
         }
 
         $fotoRefUrl = $data['foto_referencia_url'] ?? null;
         if ($request->hasFile('foto_referencia_file')) {
-            $file = $request->file('foto_referencia_file');
-            $fileName = 'ref_'.$slug.'_'.time().'.'.$file->getClientOriginalExtension();
-            $file->move(public_path('uploads/disciplinas'), $fileName);
-            $fotoRefUrl = '/uploads/disciplinas/'.$fileName;
+            $fotoRefUrl = $this->almacenarImagenSegura($request->file('foto_referencia_file'), 'disciplinas', 'ref_'.$slug);
         }
 
         $disciplinaExistente = Disciplina::find($id);
 
-        $disciplina = Disciplina::updateOrCreate(
+        Disciplina::updateOrCreate(
             ['id' => $id],
             [
                 'slug' => $slug,
@@ -120,16 +107,6 @@ class AdminController extends Controller
                 'sede_principal' => $data['sede_principal'],
             ]
         );
-
-        // Crear al menos Serie A si no tiene series
-        if ($disciplina->series()->count() === 0) {
-            Serie::create([
-                'disciplina_id' => $disciplina->id,
-                'letra' => 'A',
-                'nombre' => 'Serie A',
-                'sede_nombre' => $data['sede_principal'],
-            ]);
-        }
 
         return back()->with('success', 'Disciplina deportiva e imágenes guardadas correctamente.');
     }
@@ -150,17 +127,14 @@ class AdminController extends Controller
             'siglas' => ['required', 'string', 'max:30'],
             'provincia' => ['required', 'string', 'max:100'],
             'logo_url' => ['nullable', 'string', 'max:500'],
-            'logo_file' => ['nullable', 'image', 'mimes:jpeg,png,jpg,gif,svg,webp', 'max:5120'],
+            'logo_file' => ['nullable', 'file', 'mimes:jpeg,png,jpg,webp,avif', 'max:5120'],
         ]);
 
         $id = ! empty($data['id']) ? $data['id'] : Str::slug($data['siglas']);
 
         $logoUrl = $data['logo_url'] ?? null;
         if ($request->hasFile('logo_file')) {
-            $file = $request->file('logo_file');
-            $fileName = 'logo_'.$id.'_'.time().'.'.$file->getClientOriginalExtension();
-            $file->move(public_path('uploads/logos'), $fileName);
-            $logoUrl = '/uploads/logos/'.$fileName;
+            $logoUrl = $this->almacenarImagenSegura($request->file('logo_file'), 'logos', 'logo_'.$id);
         }
 
         $delExistente = Delegacion::find($id);
@@ -189,7 +163,7 @@ class AdminController extends Controller
     public function guardarPartido(Request $request): RedirectResponse
     {
         $data = $request->validate([
-            'serie_id' => ['required', 'integer', 'exists:series,id'],
+            'disciplina_id' => ['required', 'string', 'exists:disciplinas,id'],
             'ronda_numero' => ['required', 'integer', 'min:1'],
             'ronda_nombre' => ['required', 'string', 'max:50'],
             'local_id' => ['nullable', 'string', 'exists:delegaciones,id'],
@@ -202,7 +176,7 @@ class AdminController extends Controller
 
         Partido::create([
             'id' => $partidoId,
-            'serie_id' => $data['serie_id'],
+            'disciplina_id' => $data['disciplina_id'],
             'ronda_numero' => $data['ronda_numero'],
             'ronda_nombre' => $data['ronda_nombre'],
             'local_id' => $data['local_id'],
@@ -296,5 +270,29 @@ class AdminController extends Controller
         ]);
 
         return back()->with('success', 'Base de datos reiniciada al estado base inicial con 0 resultados.');
+    }
+
+    /**
+     * Valida y almacena de forma segura un archivo de imagen en uploads.
+     */
+    private function almacenarImagenSegura(mixed $file, string $subdirectorio, string $prefijo): string
+    {
+        $extension = strtolower($file->extension() ?: $file->guessExtension() ?: 'jpg');
+        $permitidas = ['jpeg', 'jpg', 'png', 'webp', 'avif'];
+
+        if (! in_array($extension, $permitidas, true)) {
+            abort(422, 'Formato de imagen no permitido. Solo se aceptan JPG, PNG, WEBP o AVIF.');
+        }
+
+        $nombreArchivo = $prefijo.'_'.bin2hex(random_bytes(8)).'.'.$extension;
+        $destino = public_path('uploads/'.$subdirectorio);
+
+        if (! file_exists($destino)) {
+            mkdir($destino, 0755, true);
+        }
+
+        $file->move($destino, $nombreArchivo);
+
+        return '/uploads/'.$subdirectorio.'/'.$nombreArchivo;
     }
 }
