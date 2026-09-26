@@ -1,0 +1,28 @@
+# ==============================================================================
+# JEDPA 2026 - Root Apache Protection & cPanel Subdomain Forwarder
+# ==============================================================================
+
+# 1. Deny access to sensitive files (.env, .git, configuration, logs)
+<FilesMatch "(^\.|\.(env|log|sql|sqlite|yml|yaml|json|lock|md|xml|dist)$)">
+    <IfModule mod_authz_core.c>
+        Require all denied
+    </IfModule>
+    <IfModule !mod_authz_core.c>
+        Order allow,deny
+        Deny from all
+    </IfModule>
+</FilesMatch>
+
+# 2. Disable directory listing
+Options -Indexes
+
+# 3. Transparently rewrite requests to public/ if document root points to project root
+<IfModule mod_rewrite.c>
+    RewriteEngine On
+
+    # Prevent loop if already inside public
+    RewriteCond %{REQUEST_URI} !^/public/
+
+    # Forward all traffic to the public directory
+    RewriteRule ^(.*)$ public/$1 [L]
+</IfModule>

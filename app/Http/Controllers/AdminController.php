@@ -404,6 +404,10 @@ class AdminController extends Controller
 
     public function reiniciarBd(): RedirectResponse
     {
+        if (app()->environment('production')) {
+            return back()->with('error', 'El reinicio total de la base de datos está inhabilitado en entorno de producción por medidas de seguridad.');
+        }
+
         Artisan::call('migrate:fresh', [
             '--seed' => true,
             '--force' => true,

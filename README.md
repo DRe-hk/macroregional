@@ -197,43 +197,159 @@ php artisan serve
 2. **Inspección de Archivos y Blindaje de Subidas (RCE Defense):**
    - Validación estricta del tipo MIME mediante `fileinfo`.
    - Nombres aleatorios criptográficos para evitar sobrescrituras y ataques de *Path Traversal*.
-   - Inhabilitación de ejecución de PHP en la carpeta pública mediante directivas `.htaccess`.
+## 🔒 Seguridad y Control de Acceso Granular
+
+1. **Aislamiento Granular por Delegado:**
+   - La tabla pivote `delegado_disciplinas` define qué deportes puede gestionar cada delegado.
+   - El sistema comprueba mediante `$user->puedeEditarPartido($partido)` la autorización estricta. Si intenta modificar un partido no asignado, el servidor responde con **`HTTP 403 Forbidden`**.
+2. **Inspección de Archivos y Blindaje de Subidas (RCE Defense):**
+   - Validación estricta del tipo MIME real mediante `fileinfo` (no se fía del nombre enviado por el cliente).
+   - Nombres aleatorios criptográficos para evitar colisiones y ataques de *Path Traversal*.
+   - Inhabilitación estricta de ejecución de scripts PHP en la carpeta pública de subidas mediante [`public/uploads/.htaccess`](public/uploads/.htaccess).
 3. **Seguridad contra Inyecciones y XSS:**
-   - Consultas parametrizadas al 100% mediante Eloquent ORM.
-   - Escape automático de salida en Blade (`{{ ... }}`).
-   - Cabeceras HTTP seguras: `X-Frame-Options: SAMEORIGIN`, `X-Content-Type-Options: nosniff`.
+   - Consultas parametrizadas al 100% mediante Eloquent ORM (cero concatenaciones SQL).
+   - Escape automático de salida en plantillas Blade (`{{ ... }}`).
+   - Cabeceras HTTP defensivas mediante [`SecurityHeadersMiddleware`](app/Http/Middleware/SecurityHeadersMiddleware.php): `X-Frame-Options: SAMEORIGIN`, `X-Content-Type-Options: nosniff`, `X-XSS-Protection: 1; mode=block`.
+4. **Protección de la Raíz en cPanel:**
+   - El archivo [`.htaccess`](.htaccess) en la raíz bloquea cualquier intento de descarga de `.env`, `.git`, logs y archivos de configuración, además de redirigir de forma transparente las peticiones a la carpeta `public/`.
+5. **Bloqueo de Destrucción Accidental de BD:**
+   - El comando de reinicio masivo de BD en el controlador está protegido contra ejecución en entornos con `APP_ENV=production`.
 
 ---
 
-## 📦 Guía de Despliegue en cPanel
+## 📦 Guía de Despliegue en cPanel (Paso a Paso)
 
-1. **Subdominio:**
-   - Configura el subdominio en cPanel (ej. `deportes.drepuno.gob.pe`).
-   - Apunta el **Document Root** a la carpeta `public` del proyecto.
-2. **Subida en Archivo ZIP:**
-   - Comprime todo el proyecto excluyendo `node_modules`, `.git` y `storage/logs/*.log`.
-   - Sube y descomprime en el servidor.
-3. **Base de Datos:**
-   - En **phpMyAdmin**, selecciona la base de datos creada e importa el archivo `database/macroregional.sql`.
-4. **Archivo `.env` en Producción:**
-   ```env
+El proyecto cuenta con un paquete listo para producción comprimido en la raíz:
+```text
+jedpa_macroregional_cpanel.zip  (19.3 MB)
+```
+Este archivo ZIP incluye todas las dependencias (`vendor/`), los assets compilados (`public/build`), el script SQL de la base de datos (`database/macroregional.sql`), los archivos `.htaccess` de seguridad y la plantilla de entorno. **No se requiere instalar Composer ni Node.js en el servidor cPanel**.
+
+---
+
+### Paso 1: Configurar el Subdominio en cPanel
+
+1. Ingresa a tu panel de control de **cPanel**.
+2. Dirígete a la sección **Dominios** (Domains) $\rightarrow$ **Crear un nuevo dominio / subdominio** (ej: `deportes.drepuno.gob.pe`).
+3. Configuración del directorio raíz (**Document Root**):
+   - **Caso Recomendado:** Desmarca la casilla "Share document root" y define la ruta apuntando a la subcarpeta `public`:
+     ```text
+     /home/usuario/deportes/public
+     ```
+   - **Caso Alternativo (si cPanel fija `public_html/deportes`):**  
+     Puedes subir el proyecto directamente en `public_html/deportes`. Gracias al archivo `.htaccess` incluido en la raíz del proyecto, el tráfico se redirigirá internamente a `public/` y todos los archivos confidenciales (`.env`, `storage`, código fuente) quedarán 100% protegidos contra accesos directos desde la web.
+
+---
+
+### Paso 2: Subir y Descomprimir el Proyecto
+
+1. En cPanel, abre el **Administrador de Archivos** (File Manager).
+2. Navega hasta el directorio de tu subdominio (ej: `/home/usuario/deportes` o `public_html/deportes`).
+3. Haz clic en **Cargar** (Upload) en la barra superior y sube el archivo `jedpa_macroregional_cpanel.zip`.
+4. Una vez completada la carga (barra en verde), regresa al Administrador de Archivos, selecciona el archivo ZIP y pulsa **Extraer** (Extract).
+5. Verifica que se hayan descomprimido las carpetas principales (`app`, `bootstrap`, `config`, `database`, `public`, `resources`, `routes`, `storage`, `vendor`). Puedes eliminar el archivo ZIP una vez extraído para ahorrar espacio.
+
+---
+
+### Paso 3: Crear la Base de Datos e Importar los Datos Oficiales
+
+1. En cPanel, ve a **Bases de datos MySQL** (MySQL Databases):
+   - **Crear nueva base de datos:** Asigna un nombre (ej: `drepuno_macroregional`).
+   - **Crear nuevo usuario MySQL:** Crea un usuario (ej: `drepuno_user`) con una contraseña segura.
+   - **Añadir usuario a la base de datos:** Asocia el usuario a la base de datos marcando la casilla **TODOS LOS PRIVILEGIOS** (ALL PRIVILEGES) y haz clic en *Hacer cambios*.
+2. En la sección de bases de datos de cPanel, abre **phpMyAdmin**:
+   - En la columna izquierda, selecciona tu base de datos recién creada (`drepuno_macroregional`).
+   - Haz clic en la pestaña superior **Importar** (Import).
+   - En *Seleccionar archivo*, busca y sube el script ubicado en:
+     ```text
+     database/macroregional.sql
+     ```
+   - Pulsa el botón inferior **Continuar** (Import).
+   - Se importarán todas las tablas, las 14 disciplinas, las subcategorías por género, los podios de natación y atletismo, el fixture y los usuarios administradores y delegados.
+
+---
+
+### Paso 4: Configurar el Archivo de Entorno `.env`
+
+1. En el Administrador de Archivos de cPanel, asegúrate de activar la opción **"Mostrar archivos ocultos (dotfiles)"** en la esquina superior derecha (Configuración / Settings).
+2. Localiza el archivo `.env.cpanel.example`, haz clic derecho sobre él y selecciona **Rename** para renombrarlo a:
+   ```text
+   .env
+   ```
+3. Edita el archivo `.env` con los datos de tu servidor:
+   ```dotenv
    APP_NAME="JEDPA 2026 Macroregional"
    APP_ENV=production
+   APP_KEY=base64:iB7YaC5FEZNyNEBzFVqMLbc/w2qs/ajOxCc9ERoGxkU=
    APP_DEBUG=false
    APP_URL=https://deportes.drepuno.gob.pe
 
+   APP_LOCALE=es
+   APP_FALLBACK_LOCALE=es
+
+   # Conexión a la base de datos creada en el Paso 3
    DB_CONNECTION=mysql
    DB_HOST=127.0.0.1
    DB_PORT=3306
-   DB_DATABASE=usuario_macroregional
-   DB_USERNAME=usuario_db
-   DB_PASSWORD=clave_segura
+   DB_DATABASE=drepuno_macroregional
+   DB_USERNAME=drepuno_user
+   DB_PASSWORD=TuContrasenaSeguraDeMySQL
 
    SESSION_DRIVER=database
+   SESSION_LIFETIME=120
+   CACHE_STORE=database
    QUEUE_CONNECTION=sync
+   FILESYSTEM_DISK=local
    ```
-5. **Permisos de Carpetas:**
-   - Asegura permisos de escritura (`775` o `755`) en las carpetas `storage`, `bootstrap/cache` y `public/uploads`.
+4. Guarda los cambios.
+
+---
+
+### Paso 5: Permisos de Carpetas y Seguridad
+
+Verifica que las siguientes carpetas tengan permisos de lectura y escritura para el servidor web:
+
+| Directorio | Permiso Recomendado | Propósito |
+| :--- | :---: | :--- |
+| `storage/` | **`775`** o **`755`** | Almacenamiento de logs de auditoría y sesiones. |
+| `bootstrap/cache/` | **`775`** o **`755`** | Caché optimizada de la aplicación. |
+| `public/uploads/` | **`775`** o **`755`** | Almacenamiento de actas de mesa y evidencias subidas por delegados. |
+
+*(En el Administrador de Archivos de cPanel puedes hacer clic derecho sobre la carpeta $\rightarrow$ **Change Permissions**).*
+
+---
+
+### Paso 6: Versión de PHP y Extensiones en cPanel
+
+1. En cPanel, ingresa a **Seleccionar Versión de PHP** (Select PHP Version) o **Administrador MultiPHP** (MultiPHP Manager).
+2. Selecciona **PHP 8.2** o superior (8.2 / 8.3 / 8.4) para el subdominio.
+3. Asegúrate de que las siguientes extensiones estándar se encuentren activadas:
+   - `pdo_mysql`
+   - `mbstring`
+   - `fileinfo` (necesaria para la inspección segura de imágenes de actas)
+   - `curl`
+   - `openssl`
+   - `bcmath`
+
+---
+
+### Paso 7: Comprobación y Acceso Inicial
+
+1. Abre tu navegador e ingresa a la URL de tu subdominio (ej: `https://deportes.drepuno.gob.pe`).
+2. Verifica la carga de la portada, el carrusel Hero y las 14 disciplinas oficiales agrupadas.
+3. Haz clic en **"Ingresar"** (`/entrar`) y prueba el acceso con las credenciales de administrador:
+   - **Usuario:** `admin`
+   - **Contraseña:** `drep2026` o `admin123`
+4. ¡El sistema se encuentra listo para la cobertura deportiva en vivo!
+
+---
+
+## 🛠️ Solución de Problemas Comunes en cPanel
+
+- **Error HTTP 500:** Verifica que el archivo `.env` exista y no tenga errores de sintaxis en las contraseñas con caracteres especiales (si tu clave tiene caracteres como `#` o `$`, enciérrala entre comillas dobles `"tu_clave#123"`). Revisa el log en `storage/logs/laravel.log`.
+- **Los estilos no cargan:** Asegúrate de que el `APP_URL` en tu `.env` coincida exactamente con la URL (con `https://`) del subdominio.
+- **Error de conexión a la base de datos (Access denied):** Verifica en cPanel que hayas asociado el usuario a la base de datos en *Bases de Datos MySQL* y otorgado **ALL PRIVILEGES**.
+- **No se pueden subir fotos de actas:** Revisa que la carpeta `public/uploads/evidencias/` tenga permisos `775` o `755`.
 
 ---
 
