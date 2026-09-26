@@ -639,6 +639,7 @@ class DatabaseSeeder extends Seeder
         );
 
         $delegadosConfig = [
+            ['user' => 'delegado_puno', 'name' => 'Delegado General DRE Puno', 'email' => 'delegado.puno@drepuno.gob.pe', 'deportes' => ['futbol', 'futbol-b-varones', 'futbol-b-damas', 'futsal', 'basquet', 'voleibol', 'handball', 'atletismo', 'natacion', 'tenis-mesa', 'ajedrez']],
             ['user' => 'delegado.futbol', 'name' => 'Delegado Oficial Fútbol', 'email' => 'futbol@drepuno.gob.pe', 'deportes' => ['futbol', 'futbol-b-varones', 'futbol-b-damas', 'futbol-c-varones', 'futbol-c-damas']],
             ['user' => 'delegado.futsal', 'name' => 'Delegado Oficial Futsal', 'email' => 'futsal@drepuno.gob.pe', 'deportes' => ['futsal', 'futsal-b-varones', 'futsal-b-damas']],
             ['user' => 'delegado.basquet', 'name' => 'Delegado Oficial Básquet', 'email' => 'basquet@drepuno.gob.pe', 'deportes' => ['basquet', 'basquet-b-varones', 'basquet-b-damas', 'basquet-c-varones', 'basquet-c-damas']],

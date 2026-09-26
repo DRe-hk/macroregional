@@ -37,6 +37,7 @@ CREATE TABLE `cache` (
 
 LOCK TABLES `cache` WRITE;
 /*!40000 ALTER TABLE `cache` DISABLE KEYS */;
+INSERT INTO `cache` VALUES ('laravel-cache-5c785c036466adea360111aa28563bfd556b5fba','i:1;',1790401544),('laravel-cache-5c785c036466adea360111aa28563bfd556b5fba:timer','i:1790401544;',1790401544);
 /*!40000 ALTER TABLE `cache` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -448,6 +449,7 @@ CREATE TABLE `sessions` (
 
 LOCK TABLES `sessions` WRITE;
 /*!40000 ALTER TABLE `sessions` DISABLE KEYS */;
+INSERT INTO `sessions` VALUES ('Di3SNWKYJrQoT8P4MjwHcmu13tUi344jApR0BuLK',NULL,'127.0.0.1','Mozilla/5.0 (Windows NT 10.0; Microsoft Windows 10.0.26300; es-PE) PowerShell/7.6.6','eyJfdG9rZW4iOiJ4MmNXclpLZ0ZsMks0aU9kQklPVEI1S0J5MVBJNWNYeWJQb2pTV0R4IiwiX3ByZXZpb3VzIjp7InVybCI6Imh0dHA6XC9cL2RlcG9ydGVzLnRlc3QiLCJyb3V0ZSI6ImhvbWUifSwiX2ZsYXNoIjp7Im9sZCI6W10sIm5ldyI6W119fQ==',1790401956),('HojYpDvlFSQ3sioqhywh1I4uAOOmSPFRLoIxmAZQ',NULL,'127.0.0.1','Mozilla/5.0 (Windows NT 10.0; Microsoft Windows 10.0.26300; es-PE) PowerShell/7.6.6','eyJfdG9rZW4iOiJEY0x1cE9TWFQzWVdhNTZBNHY2ZGd4Qk5uUktSTlUxQUhOU2FPYUtlIiwiX3ByZXZpb3VzIjp7InVybCI6Imh0dHA6XC9cL2RlcG9ydGVzLnRlc3QiLCJyb3V0ZSI6ImhvbWUifSwiX2ZsYXNoIjp7Im9sZCI6W10sIm5ldyI6W119fQ==',1790401936),('Kk77W8KbJnfEPDRgLBIqaODWTDB3y7i7XoHXIjGe',NULL,'127.0.0.1','Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/150.0.0.0 Safari/537.36','eyJfdG9rZW4iOiI0MXpmNGw3YlVkSzA5aFc1bFhqMXBYYVJTb0o2NE1WUFAwMm53cng1IiwiX3ByZXZpb3VzIjp7InVybCI6Imh0dHA6XC9cL2RlcG9ydGVzLnRlc3QiLCJyb3V0ZSI6ImhvbWUifSwiX2ZsYXNoIjp7Im9sZCI6W10sIm5ldyI6W119fQ==',1790401600),('MxaGLyJnu8dbNwWdgFin9OXNV1FJy48xD7MxZweJ',NULL,'127.0.0.1','Mozilla/5.0 (Windows NT 10.0; Microsoft Windows 10.0.26300; es-PE) PowerShell/7.6.6','eyJfdG9rZW4iOiJoVEtaN2MzTEpCNWwxMXdBRWdNRnBuSmxyUldJbFI2VTVMTlJKS1lNIiwiX3ByZXZpb3VzIjp7InVybCI6Imh0dHA6XC9cL2RlcG9ydGVzLnRlc3QiLCJyb3V0ZSI6ImhvbWUifSwiX2ZsYXNoIjp7Im9sZCI6W10sIm5ldyI6W119fQ==',1790401968),('qUlz6KpfpdUatE4xj57b79aoDb9ldXhOc3cppLMm',NULL,'127.0.0.1','Mozilla/5.0 (Windows NT 10.0; Microsoft Windows 10.0.26300; es-PE) PowerShell/7.6.6','eyJfdG9rZW4iOiJpMGVhUnlQUUNYbWE0S0dyd2NPWkZzYUNYZEFtSk1paUkxWFMyUmVQIiwiX3ByZXZpb3VzIjp7InVybCI6Imh0dHA6XC9cL2RlcG9ydGVzLnRlc3QiLCJyb3V0ZSI6ImhvbWUifSwiX2ZsYXNoIjp7Im9sZCI6W10sIm5ldyI6W119fQ==',1790401948);
 /*!40000 ALTER TABLE `sessions` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -513,7 +515,7 @@ CREATE TABLE `users` (
   UNIQUE KEY `users_username_unique` (`username`),
   KEY `users_delegacion_id_foreign` (`delegacion_id`),
   CONSTRAINT `users_delegacion_id_foreign` FOREIGN KEY (`delegacion_id`) REFERENCES `delegaciones` (`id`) ON DELETE SET NULL
-) ENGINE=InnoDB AUTO_INCREMENT=11 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=12 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -522,7 +524,7 @@ CREATE TABLE `users` (
 
 LOCK TABLES `users` WRITE;
 /*!40000 ALTER TABLE `users` DISABLE KEYS */;
-INSERT INTO `users` VALUES (1,'admin','Administrador General DREP','admin@drepuno.gob.pe',NULL,'$2y$12$YByl7EN7JrpzqV3P4s3bQ.2He8Nbss1yJMDLm/VfCUq1pFZNlFGeu','ADMIN','dre-puno',1,NULL,'2026-09-26 10:10:48','2026-09-26 10:34:07'),(2,'delegado.futbol','Delegado Oficial Fútbol','futbol@drepuno.gob.pe',NULL,'$2y$12$Gz4B1Rwg0Y1AKUnXeQM/Qel0IzqVw851X0kdWC2Mbgk8TeEo7CQLm','DELEGADO','dre-puno',1,NULL,'2026-09-26 10:10:48','2026-09-26 10:34:07'),(3,'delegado.futsal','Delegado Oficial Futsal','futsal@drepuno.gob.pe',NULL,'$2y$12$3xmgqABeSTEPAbX1ee25m.7Or/i.FCyAFtamn2sTMJVk0vWpuwvpa','DELEGADO','dre-puno',1,NULL,'2026-09-26 10:10:48','2026-09-26 10:34:08'),(4,'delegado.basquet','Delegado Oficial Básquet','basquet@drepuno.gob.pe',NULL,'$2y$12$FcYnKy2YJTUQrKCTi112hu/L0dHmHjrNJ79z1256Y35U3oIt13Fqi','DELEGADO','dre-puno',1,NULL,'2026-09-26 10:10:49','2026-09-26 10:34:08'),(5,'delegado.voley','Delegado Oficial Voleibol','voley@drepuno.gob.pe',NULL,'$2y$12$1G1j4O8zIs1rbcMZ91hMBOmwIEc4Cv2wWoU6HBZXKJ8vN1S/wUGiu','DELEGADO','dre-puno',1,NULL,'2026-09-26 10:10:49','2026-09-26 10:34:08'),(6,'delegado.handball','Delegado Oficial Handball','handball@drepuno.gob.pe',NULL,'$2y$12$OmLhhaTmo4vWAd8yNdp4tuHCk1x0hsSuqj7vt3ffVOz0n4zVGTpgK','DELEGADO','dre-puno',1,NULL,'2026-09-26 10:10:49','2026-09-26 10:34:08'),(7,'delegado.atletismo','Delegado Oficial Atletismo','atletismo@drepuno.gob.pe',NULL,'$2y$12$XWWsskNg2e9edKHm8yS1LO70nX5k6p77GASp5FJ0svIulpj1STlqS','DELEGADO','dre-puno',1,NULL,'2026-09-26 10:10:49','2026-09-26 10:34:08'),(8,'delegado.natacion','Delegado Oficial Natación','natacion@drepuno.gob.pe',NULL,'$2y$12$IR.Eur8wNJfnBlNGgFTOtee72zWliu0RVU1jZxigcJscQiVJ2E1GW','DELEGADO','dre-puno',1,NULL,'2026-09-26 10:10:49','2026-09-26 10:34:09'),(9,'delegado.tenismesa','Delegado Oficial Tenis de Mesa','tenismesa@drepuno.gob.pe',NULL,'$2y$12$z1DAg2ODLyQSvgfXCOYiiO/EO4C1L95ZPl.JPnru/tCqJl5LlLTPq','DELEGADO','dre-puno',1,NULL,'2026-09-26 10:10:50','2026-09-26 10:34:09'),(10,'delegado.ajedrez','Delegado Oficial Ajedrez','ajedrez@drepuno.gob.pe',NULL,'$2y$12$tardkXhKlN4HKrAaBMCaYeS.JQ3hJaJbd5AQfLe.CjaRJgD0XqAuO','DELEGADO','dre-puno',1,NULL,'2026-09-26 10:10:50','2026-09-26 10:34:09');
+INSERT INTO `users` VALUES (1,'admin','Administrador General DREP','admin@drepuno.gob.pe',NULL,'$2y$12$YByl7EN7JrpzqV3P4s3bQ.2He8Nbss1yJMDLm/VfCUq1pFZNlFGeu','ADMIN','dre-puno',1,NULL,'2026-09-26 10:10:48','2026-09-26 10:34:07'),(2,'delegado.futbol','Delegado Oficial Fútbol','futbol@drepuno.gob.pe',NULL,'$2y$12$Gz4B1Rwg0Y1AKUnXeQM/Qel0IzqVw851X0kdWC2Mbgk8TeEo7CQLm','DELEGADO','dre-puno',1,NULL,'2026-09-26 10:10:48','2026-09-26 10:34:07'),(3,'delegado.futsal','Delegado Oficial Futsal','futsal@drepuno.gob.pe',NULL,'$2y$12$3xmgqABeSTEPAbX1ee25m.7Or/i.FCyAFtamn2sTMJVk0vWpuwvpa','DELEGADO','dre-puno',1,NULL,'2026-09-26 10:10:48','2026-09-26 10:34:08'),(4,'delegado.basquet','Delegado Oficial Básquet','basquet@drepuno.gob.pe',NULL,'$2y$12$FcYnKy2YJTUQrKCTi112hu/L0dHmHjrNJ79z1256Y35U3oIt13Fqi','DELEGADO','dre-puno',1,NULL,'2026-09-26 10:10:49','2026-09-26 10:34:08'),(5,'delegado.voley','Delegado Oficial Voleibol','voley@drepuno.gob.pe',NULL,'$2y$12$1G1j4O8zIs1rbcMZ91hMBOmwIEc4Cv2wWoU6HBZXKJ8vN1S/wUGiu','DELEGADO','dre-puno',1,NULL,'2026-09-26 10:10:49','2026-09-26 10:34:08'),(6,'delegado.handball','Delegado Oficial Handball','handball@drepuno.gob.pe',NULL,'$2y$12$OmLhhaTmo4vWAd8yNdp4tuHCk1x0hsSuqj7vt3ffVOz0n4zVGTpgK','DELEGADO','dre-puno',1,NULL,'2026-09-26 10:10:49','2026-09-26 10:34:08'),(7,'delegado.atletismo','Delegado Oficial Atletismo','atletismo@drepuno.gob.pe',NULL,'$2y$12$XWWsskNg2e9edKHm8yS1LO70nX5k6p77GASp5FJ0svIulpj1STlqS','DELEGADO','dre-puno',1,NULL,'2026-09-26 10:10:49','2026-09-26 10:34:08'),(8,'delegado.natacion','Delegado Oficial Natación','natacion@drepuno.gob.pe',NULL,'$2y$12$IR.Eur8wNJfnBlNGgFTOtee72zWliu0RVU1jZxigcJscQiVJ2E1GW','DELEGADO','dre-puno',1,NULL,'2026-09-26 10:10:49','2026-09-26 10:34:09'),(9,'delegado.tenismesa','Delegado Oficial Tenis de Mesa','tenismesa@drepuno.gob.pe',NULL,'$2y$12$z1DAg2ODLyQSvgfXCOYiiO/EO4C1L95ZPl.JPnru/tCqJl5LlLTPq','DELEGADO','dre-puno',1,NULL,'2026-09-26 10:10:50','2026-09-26 10:34:09'),(10,'delegado.ajedrez','Delegado Oficial Ajedrez','ajedrez@drepuno.gob.pe',NULL,'$2y$12$tardkXhKlN4HKrAaBMCaYeS.JQ3hJaJbd5AQfLe.CjaRJgD0XqAuO','DELEGADO','dre-puno',1,NULL,'2026-09-26 10:10:50','2026-09-26 10:34:09'),(11,'delegado_puno','Delegado General DRE Puno','delegado.puno@drepuno.gob.pe',NULL,'$2y$12$mynIiFlEoE5NU7d8IytcHOSREPFZGe3DozDN6lICYUz1HxAANvHdi','DELEGADO','dre-puno',1,NULL,'2026-09-26 10:53:31','2026-09-26 10:53:31');
 /*!40000 ALTER TABLE `users` ENABLE KEYS */;
 UNLOCK TABLES;
 /*!40103 SET TIME_ZONE=@OLD_TIME_ZONE */;
@@ -535,4 +537,4 @@ UNLOCK TABLES;
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
--- Dump completed on 2026-09-26  0:34:17
+-- Dump completed on 2026-09-26  0:54:55
