@@ -137,8 +137,16 @@ class AdminController extends Controller
             'horario_cronograma' => ['nullable', 'string', 'max:100'],
         ]);
 
-        $slug = Str::slug($data['nombre']);
-        $id = ! empty($data['id']) ? $data['id'] : $slug;
+        $disciplinaExistente = ! empty($data['id']) ? Disciplina::find($data['id']) : null;
+
+        if ($disciplinaExistente) {
+            $id = $disciplinaExistente->id;
+            $slug = $disciplinaExistente->slug;
+        } else {
+            $slugBase = ($data['parent_id'] ? $data['parent_id'].'-' : '').$data['nombre'].(! empty($data['categoria']) ? '-'.$data['categoria'] : '').(! empty($data['genero']) ? '-'.$data['genero'] : '');
+            $slug = Str::slug($slugBase);
+            $id = ! empty($data['id']) ? $data['id'] : $slug;
+        }
 
         $fotoUrl = $data['foto_url'] ?? null;
         if ($request->hasFile('foto_file')) {
@@ -149,8 +157,6 @@ class AdminController extends Controller
         if ($request->hasFile('foto_referencia_file')) {
             $fotoRefUrl = $this->almacenarImagenSegura($request->file('foto_referencia_file'), 'disciplinas', 'ref_'.$slug);
         }
-
-        $disciplinaExistente = Disciplina::find($id);
 
         Disciplina::updateOrCreate(
             ['id' => $id],

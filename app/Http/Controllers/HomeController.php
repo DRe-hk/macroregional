@@ -123,20 +123,27 @@ class HomeController extends Controller
     public function disciplina(Request $request, string $slug): View
     {
         $torneo = Torneo::actual();
-        $disciplinaBase = Disciplina::with('subcategorias')->where('slug', $slug)->firstOrFail();
+        $disciplinaBase = Disciplina::with(['subcategorias', 'parent.subcategorias'])->where('slug', $slug)->firstOrFail();
 
-        // Si la disciplina tiene subcategorías, determinar cuál mostrar
-        $subSlug = $request->query('sub');
-        $disciplina = $disciplinaBase;
+        // Si la disciplina consultada es en sí una subcategoría con padre
+        if ($disciplinaBase->parent_id && $disciplinaBase->parent) {
+            $disciplinaPadre = $disciplinaBase->parent;
+            $disciplina = $disciplinaBase;
+        } else {
+            $disciplinaPadre = $disciplinaBase;
+            $disciplina = $disciplinaBase;
 
-        if ($disciplinaBase->subcategorias->isNotEmpty()) {
-            if ($subSlug) {
-                $sub = $disciplinaBase->subcategorias->firstWhere('slug', $subSlug);
-                if ($sub) {
-                    $disciplina = $sub;
+            // Si la disciplina tiene subcategorías, determinar cuál mostrar
+            $subSlug = $request->query('sub');
+            if ($disciplinaBase->subcategorias->isNotEmpty()) {
+                if ($subSlug) {
+                    $sub = $disciplinaBase->subcategorias->firstWhere('slug', $subSlug);
+                    if ($sub) {
+                        $disciplina = $sub;
+                    }
+                } else {
+                    $disciplina = $disciplinaBase->subcategorias->first();
                 }
-            } else {
-                $disciplina = $disciplinaBase->subcategorias->first();
             }
         }
 

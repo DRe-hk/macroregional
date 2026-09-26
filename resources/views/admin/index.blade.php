@@ -3,7 +3,63 @@
 @section('title', 'Suite de Administración General · ' . $torneo->nombre)
 
 @section('content')
-<div class="min-h-screen bg-slate-50 py-8 px-4 sm:px-6" x-data="{ tab: 'torneo', modalPermisos: { open: false, user: null, name: '', disciplinas: [] } }">
+<div
+    class="min-h-screen bg-slate-50 py-8 px-4 sm:px-6"
+    x-data="{
+        tab: 'torneo',
+        modalPermisos: { open: false, user: null, name: '', disciplinas: [] },
+        modalEditarDeporte: {
+            open: false,
+            id: '',
+            nombre: '',
+            parent_id: '',
+            tipo: 'COLECTIVO',
+            sistema_puntuacion: 'FUTBOL',
+            categoria: '',
+            genero: '',
+            sede_principal: '',
+            color_acento: '#2563eb',
+            fechas_cronograma: '',
+            horario_cronograma: '',
+            descripcion: '',
+            foto_url: '',
+            foto_referencia_url: ''
+        },
+        modalEditarDelegacion: {
+            open: false,
+            id: '',
+            nombre: '',
+            siglas: '',
+            provincia: '',
+            logo_url: ''
+        },
+        abrirEditarDeporte(d) {
+            this.modalEditarDeporte.id = d.id;
+            this.modalEditarDeporte.nombre = d.nombre || '';
+            this.modalEditarDeporte.parent_id = d.parent_id || '';
+            this.modalEditarDeporte.tipo = d.tipo || 'COLECTIVO';
+            this.modalEditarDeporte.sistema_puntuacion = d.sistema_puntuacion || 'FUTBOL';
+            this.modalEditarDeporte.categoria = d.categoria || '';
+            this.modalEditarDeporte.genero = d.genero || '';
+            this.modalEditarDeporte.sede_principal = d.sede_principal || '';
+            this.modalEditarDeporte.color_acento = d.color_acento || '#2563eb';
+            this.modalEditarDeporte.fechas_cronograma = d.fechas_cronograma || '';
+            this.modalEditarDeporte.horario_cronograma = d.horario_cronograma || '';
+            this.modalEditarDeporte.descripcion = d.descripcion || '';
+            this.modalEditarDeporte.foto_url = d.foto_url || '';
+            this.modalEditarDeporte.foto_referencia_url = d.foto_referencia_url || '';
+            this.modalEditarDeporte.open = true;
+        },
+        abrirEditarDelegacion(del) {
+            this.modalEditarDelegacion.id = del.id;
+            this.modalEditarDelegacion.nombre = del.nombre || '';
+            this.modalEditarDelegacion.siglas = del.siglas || '';
+            this.modalEditarDelegacion.provincia = del.provincia || '';
+            this.modalEditarDelegacion.logo_url = del.logo_url || '';
+            this.modalEditarDelegacion.open = true;
+        }
+    }"
+>
     <div class="mx-auto max-w-[1360px] space-y-6">
         
         <!-- Cabecera de Administración -->
@@ -360,7 +416,16 @@
                 @foreach($deportesIndividuales as $ind)
                     <div class="rounded-xl border border-slate-200 bg-white p-4 space-y-3">
                         <div class="flex items-center justify-between border-b border-slate-100 pb-2">
-                            <span class="font-black text-sm text-slate-900">{{ $ind->nombre }} ({{ $ind->sede_principal }})</span>
+                            <span class="font-black text-sm text-slate-900">
+                                @if($ind->parent)
+                                    <span class="text-blue-600 font-bold text-xs uppercase block">{{ $ind->parent->nombre }}</span>
+                                @endif
+                                {{ $ind->nombre }}
+                                @if($ind->categoria || $ind->genero)
+                                    <span class="text-xs font-semibold text-slate-500">({{ $ind->categoria }} {{ $ind->genero ? '· ' . $ind->genero : '' }})</span>
+                                @endif
+                                <span class="text-xs font-normal text-slate-400">· {{ $ind->sede_principal }}</span>
+                            </span>
                             <span class="text-xs font-bold text-amber-700">Campeón Actual: {{ $ind->campeon_actual ?: 'Sin proclamar' }}</span>
                         </div>
 
@@ -452,7 +517,29 @@
                                 <td class="px-3 py-3 font-bold text-amber-800">
                                     {{ $d->campeon_actual ?: '-' }}
                                 </td>
-                                <td class="py-3 pl-3 pr-4 text-right">
+                                <td class="py-3 pl-3 pr-4 text-right whitespace-nowrap">
+                                    <button
+                                        type="button"
+                                        @click="abrirEditarDeporte({{ json_encode([
+                                            'id' => $d->id,
+                                            'nombre' => $d->nombre,
+                                            'parent_id' => $d->parent_id,
+                                            'tipo' => $d->tipo,
+                                            'sistema_puntuacion' => $d->sistema_puntuacion,
+                                            'categoria' => $d->categoria,
+                                            'genero' => $d->genero,
+                                            'sede_principal' => $d->sede_principal,
+                                            'color_acento' => $d->color_acento,
+                                            'fechas_cronograma' => $d->fechas_cronograma,
+                                            'horario_cronograma' => $d->horario_cronograma,
+                                            'descripcion' => $d->descripcion,
+                                            'foto_url' => $d->foto_url,
+                                            'foto_referencia_url' => $d->foto_referencia_url,
+                                        ]) }})"
+                                        class="text-blue-600 hover:text-blue-800 font-bold mr-3 cursor-pointer"
+                                    >
+                                        Editar
+                                    </button>
                                     <form action="{{ route('admin.deporte.eliminar', $d->id) }}" method="POST" onsubmit="return confirm('¿Eliminar esta disciplina?');" class="inline">
                                         @csrf
                                         @method('DELETE')
@@ -541,7 +628,20 @@
                                 <td class="px-3 py-3 text-center font-black text-slate-900 tabular-nums">
                                     {{ $del->puntos }}
                                 </td>
-                                <td class="py-3 pl-3 pr-4 text-right">
+                                <td class="py-3 pl-3 pr-4 text-right whitespace-nowrap">
+                                    <button
+                                        type="button"
+                                        @click="abrirEditarDelegacion({{ json_encode([
+                                            'id' => $del->id,
+                                            'nombre' => $del->nombre,
+                                            'siglas' => $del->siglas,
+                                            'provincia' => $del->provincia,
+                                            'logo_url' => $del->logo_url,
+                                        ]) }})"
+                                        class="text-blue-600 hover:text-blue-800 font-bold mr-3 cursor-pointer"
+                                    >
+                                        Editar
+                                    </button>
                                     <form action="{{ route('admin.delegacion.eliminar', $del->id) }}" method="POST" onsubmit="return confirm('¿Eliminar esta delegación?');" class="inline">
                                         @csrf
                                         @method('DELETE')
@@ -934,6 +1034,214 @@
                         class="rounded-lg bg-slate-900 hover:bg-slate-800 px-5 py-2 text-xs font-black uppercase text-white cursor-pointer"
                     >
                         Guardar Permisos Granulares
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Modal: Editar Deporte / Subcategoría -->
+    <div
+        x-show="modalEditarDeporte.open"
+        x-cloak
+        class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-xs overflow-y-auto"
+        @keydown.escape.window="modalEditarDeporte.open = false"
+    >
+        <div
+            @click.outside="modalEditarDeporte.open = false"
+            class="relative w-full max-w-3xl my-8 overflow-hidden rounded-2xl bg-white shadow-2xl border border-slate-200"
+        >
+            <div class="flex items-center justify-between p-4 border-b border-slate-200 bg-slate-50">
+                <div>
+                    <span class="text-[10px] font-black uppercase text-blue-600 block">Modificar Registro Deportivo</span>
+                    <h3 class="text-base font-black text-slate-900" x-text="'Editar: ' + modalEditarDeporte.nombre"></h3>
+                </div>
+                <button
+                    type="button"
+                    @click="modalEditarDeporte.open = false"
+                    class="size-8 rounded-lg bg-slate-200 hover:bg-slate-300 text-slate-700 flex items-center justify-center cursor-pointer transition"
+                >
+                    <svg class="size-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>
+                </button>
+            </div>
+
+            <form action="{{ route('admin.deporte.guardar') }}" method="POST" enctype="multipart/form-data" class="p-6 space-y-4">
+                @csrf
+                <input type="hidden" name="id" :value="modalEditarDeporte.id">
+
+                <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
+                    <div class="sm:col-span-2">
+                        <label class="block text-xs font-bold uppercase text-slate-700 mb-1">Nombre</label>
+                        <input type="text" name="nombre" x-model="modalEditarDeporte.nombre" required class="w-full rounded-lg border border-slate-300 px-3.5 py-2 text-xs text-slate-900 focus:border-slate-900 focus:outline-none" />
+                    </div>
+
+                    <div>
+                        <label class="block text-xs font-bold uppercase text-slate-700 mb-1">Deporte Padre (Subcategoría)</label>
+                        <select name="parent_id" x-model="modalEditarDeporte.parent_id" class="w-full rounded-lg border border-slate-300 px-3.5 py-2 text-xs font-semibold text-slate-900 focus:border-slate-900 focus:outline-none">
+                            <option value="">-- Ninguno (Es Deporte Principal) --</option>
+                            @foreach($deportesPrincipales as $dp)
+                                <option value="{{ $dp->id }}">{{ $dp->nombre }}</option>
+                            @endforeach
+                        </select>
+                    </div>
+
+                    <div>
+                        <label class="block text-xs font-bold uppercase text-slate-700 mb-1">Tipo de Deporte</label>
+                        <select name="tipo" x-model="modalEditarDeporte.tipo" required class="w-full rounded-lg border border-slate-300 px-3.5 py-2 text-xs font-semibold text-slate-900 focus:border-slate-900 focus:outline-none">
+                            <option value="COLECTIVO">COLECTIVO (Con partidos / fixture)</option>
+                            <option value="INDIVIDUAL">INDIVIDUAL (Natación / Atletismo - Sin fixture)</option>
+                        </select>
+                    </div>
+
+                    <div>
+                        <label class="block text-xs font-bold uppercase text-slate-700 mb-1">Sistema de Puntuación (MINEDU)</label>
+                        <select name="sistema_puntuacion" x-model="modalEditarDeporte.sistema_puntuacion" required class="w-full rounded-lg border border-slate-300 px-3.5 py-2 text-xs font-semibold text-slate-900 focus:border-slate-900 focus:outline-none">
+                            <option value="FUTBOL">Fútbol / Futsal (3-1-0)</option>
+                            <option value="BASQUET">Básquet (2-1-0)</option>
+                            <option value="HANDBALL">Handball (2-1-0 / WO -2)</option>
+                            <option value="VOLEIBOL">Voleibol (Sets 3-2-1-0)</option>
+                            <option value="VOLEY_PLAYA">Vóley Playa (Sets 3-2-1-0)</option>
+                            <option value="INDIVIDUAL">Individual (Podio directo)</option>
+                        </select>
+                    </div>
+
+                    <div>
+                        <label class="block text-xs font-bold uppercase text-slate-700 mb-1">Color de Acento</label>
+                        <input type="color" name="color_acento" x-model="modalEditarDeporte.color_acento" class="w-full h-9 rounded-lg border border-slate-300 p-1 cursor-pointer" />
+                    </div>
+
+                    <div>
+                        <label class="block text-xs font-bold uppercase text-slate-700 mb-1">Categoría</label>
+                        <input type="text" name="categoria" x-model="modalEditarDeporte.categoria" placeholder="Ej. Cat. B" class="w-full rounded-lg border border-slate-300 px-3.5 py-2 text-xs text-slate-900 focus:border-slate-900 focus:outline-none" />
+                    </div>
+
+                    <div>
+                        <label class="block text-xs font-bold uppercase text-slate-700 mb-1">Género / Rama</label>
+                        <select name="genero" x-model="modalEditarDeporte.genero" class="w-full rounded-lg border border-slate-300 px-3.5 py-2 text-xs font-semibold text-slate-900 focus:border-slate-900 focus:outline-none">
+                            <option value="">-- No especificado / Mixto --</option>
+                            <option value="Varones">Varones</option>
+                            <option value="Damas">Damas</option>
+                            <option value="Mixto">Mixto</option>
+                        </select>
+                    </div>
+
+                    <div>
+                        <label class="block text-xs font-bold uppercase text-slate-700 mb-1">Sede Principal / Escenario</label>
+                        <input type="text" name="sede_principal" x-model="modalEditarDeporte.sede_principal" required class="w-full rounded-lg border border-slate-300 px-3.5 py-2 text-xs text-slate-900 focus:border-slate-900 focus:outline-none" />
+                    </div>
+
+                    <div>
+                        <label class="block text-xs font-bold uppercase text-slate-700 mb-1">Fechas Cronograma</label>
+                        <input type="text" name="fechas_cronograma" x-model="modalEditarDeporte.fechas_cronograma" placeholder="Ej. 30-Set al 02-Oct" class="w-full rounded-lg border border-slate-300 px-3.5 py-2 text-xs text-slate-900 focus:border-slate-900 focus:outline-none" />
+                    </div>
+
+                    <div>
+                        <label class="block text-xs font-bold uppercase text-slate-700 mb-1">Horario Oficial</label>
+                        <input type="text" name="horario_cronograma" x-model="modalEditarDeporte.horario_cronograma" placeholder="Ej. 09:00 AM" class="w-full rounded-lg border border-slate-300 px-3.5 py-2 text-xs text-slate-900 focus:border-slate-900 focus:outline-none" />
+                    </div>
+
+                    <div class="sm:col-span-2 md:col-span-3">
+                        <label class="block text-xs font-bold uppercase text-slate-700 mb-1">Descripción / Indicaciones</label>
+                        <textarea name="descripcion" x-model="modalEditarDeporte.descripcion" rows="2" class="w-full rounded-lg border border-slate-300 px-3.5 py-2 text-xs text-slate-900 focus:border-slate-900 focus:outline-none"></textarea>
+                    </div>
+
+                    <div class="sm:col-span-2 md:col-span-3 bg-slate-50 p-3 rounded-lg border border-slate-200">
+                        <label class="block text-xs font-bold uppercase text-slate-800 mb-1">Actualizar Foto Principal / Banner (Opcional)</label>
+                        <template x-if="modalEditarDeporte.foto_url">
+                            <p class="text-[11px] text-slate-500 mb-2 truncate">Foto actual: <span class="font-mono text-slate-700" x-text="modalEditarDeporte.foto_url"></span></p>
+                        </template>
+                        <input type="file" name="foto_file" accept="image/*" class="w-full text-xs text-slate-600 file:mr-2 file:py-1 file:px-2 file:rounded file:border-0 file:text-xs file:font-bold file:bg-slate-900 file:text-white" />
+                    </div>
+                </div>
+
+                <div class="flex justify-end gap-2 pt-3 border-t border-slate-100">
+                    <button
+                        type="button"
+                        @click="modalEditarDeporte.open = false"
+                        class="rounded-lg bg-slate-100 hover:bg-slate-200 px-4 py-2 text-xs font-bold text-slate-700 cursor-pointer"
+                    >
+                        Cancelar
+                    </button>
+                    <button
+                        type="submit"
+                        class="rounded-lg bg-slate-900 hover:bg-slate-800 px-5 py-2 text-xs font-black uppercase text-white cursor-pointer"
+                    >
+                        Actualizar Disciplina
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Modal: Editar Delegación -->
+    <div
+        x-show="modalEditarDelegacion.open"
+        x-cloak
+        class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-xs"
+        @keydown.escape.window="modalEditarDelegacion.open = false"
+    >
+        <div
+            @click.outside="modalEditarDelegacion.open = false"
+            class="relative w-full max-w-lg overflow-hidden rounded-2xl bg-white shadow-2xl border border-slate-200"
+        >
+            <div class="flex items-center justify-between p-4 border-b border-slate-200 bg-slate-50">
+                <div>
+                    <span class="text-[10px] font-black uppercase text-blue-600 block">Modificar Registro</span>
+                    <h3 class="text-base font-black text-slate-900" x-text="'Editar Delegación: ' + modalEditarDelegacion.siglas"></h3>
+                </div>
+                <button
+                    type="button"
+                    @click="modalEditarDelegacion.open = false"
+                    class="size-8 rounded-lg bg-slate-200 hover:bg-slate-300 text-slate-700 flex items-center justify-center cursor-pointer transition"
+                >
+                    <svg class="size-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>
+                </button>
+            </div>
+
+            <form action="{{ route('admin.delegacion.guardar') }}" method="POST" enctype="multipart/form-data" class="p-6 space-y-4">
+                @csrf
+                <input type="hidden" name="id" :value="modalEditarDelegacion.id">
+
+                <div>
+                    <label class="block text-xs font-bold uppercase text-slate-700 mb-1">Nombre Completo</label>
+                    <input type="text" name="nombre" x-model="modalEditarDelegacion.nombre" required class="w-full rounded-lg border border-slate-300 px-3.5 py-2 text-xs text-slate-900 focus:border-slate-900 focus:outline-none" />
+                </div>
+
+                <div class="grid grid-cols-2 gap-3">
+                    <div>
+                        <label class="block text-xs font-bold uppercase text-slate-700 mb-1">Siglas</label>
+                        <input type="text" name="siglas" x-model="modalEditarDelegacion.siglas" required class="w-full rounded-lg border border-slate-300 px-3.5 py-2 text-xs text-slate-900 focus:border-slate-900 focus:outline-none" />
+                    </div>
+                    <div>
+                        <label class="block text-xs font-bold uppercase text-slate-700 mb-1">Región / Provincia</label>
+                        <input type="text" name="provincia" x-model="modalEditarDelegacion.provincia" required class="w-full rounded-lg border border-slate-300 px-3.5 py-2 text-xs text-slate-900 focus:border-slate-900 focus:outline-none" />
+                    </div>
+                </div>
+
+                <div class="bg-slate-50 p-3 rounded-lg border border-slate-200">
+                    <label class="block text-xs font-bold uppercase text-slate-800 mb-1">Cambiar Logotipo / Escudo (Opcional)</label>
+                    <template x-if="modalEditarDelegacion.logo_url">
+                        <div class="flex items-center gap-2 mb-2">
+                            <img :src="modalEditarDelegacion.logo_url" alt="Logo actual" class="size-8 rounded object-contain border border-slate-200 bg-white" />
+                            <span class="text-[11px] text-slate-500">Escudo actual registrado</span>
+                        </div>
+                    </template>
+                    <input type="file" name="logo_file" accept="image/*" class="w-full text-xs text-slate-600 file:mr-2 file:py-1 file:px-2 file:rounded file:border-0 file:text-xs file:font-bold file:bg-slate-900 file:text-white" />
+                </div>
+
+                <div class="flex justify-end gap-2 pt-2 border-t border-slate-100">
+                    <button
+                        type="button"
+                        @click="modalEditarDelegacion.open = false"
+                        class="rounded-lg bg-slate-100 hover:bg-slate-200 px-4 py-2 text-xs font-bold text-slate-700 cursor-pointer"
+                    >
+                        Cancelar
+                    </button>
+                    <button
+                        type="submit"
+                        class="rounded-lg bg-slate-900 hover:bg-slate-800 px-5 py-2 text-xs font-black uppercase text-white cursor-pointer"
+                    >
+                        Guardar Cambios
                     </button>
                 </div>
             </form>

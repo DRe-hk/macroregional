@@ -69,6 +69,14 @@
             >
                 Nómina de Deportistas ({{ $atletas->count() }})
             </button>
+            <button
+                type="button"
+                @click="tab = 'pruebas'"
+                :class="tab === 'pruebas' ? 'bg-slate-900 text-white shadow-2xs font-extrabold' : 'bg-white text-slate-600 hover:bg-slate-100 border border-slate-200 font-bold'"
+                class="px-4 py-2 text-xs uppercase tracking-wider rounded-lg transition-colors cursor-pointer"
+            >
+                Pruebas Individuales (Atletismo / Natación)
+            </button>
         </div>
 
         <!-- PESTAÑA 1: Partidos de mi Delegación -->
@@ -400,6 +408,154 @@
 
         </div>
 
+        <!-- PESTAÑA 3: Pruebas Individuales (Atletismo / Natación) -->
+        <div x-show="tab === 'pruebas'" class="space-y-6">
+            <div class="rounded-xl border border-amber-200 bg-amber-50/70 p-4 text-xs font-medium text-amber-950 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                <div class="flex items-center gap-3">
+                    <span class="text-2xl">🏃🏊</span>
+                    <div>
+                        <span class="font-black uppercase text-amber-900 block text-[11px]">Gestión Libre de Pruebas y Subcategorías</span>
+                        <p class="text-slate-700 mt-0.5">
+                            Como delegado oficial, puedes añadir y programar libremente las pruebas específicas de disciplinas individuales como <strong>Atletismo</strong> (ej. 100 metros planos, con obstáculos, salto largo) y <strong>Natación</strong> (ej. 50m libre, 100m espalda).
+                        </p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Formulario Crear Prueba Individual -->
+            <div class="rounded-2xl border border-slate-200 bg-white p-6 shadow-2xs space-y-4">
+                <div class="border-b border-slate-100 pb-3">
+                    <span class="text-[10px] font-black uppercase text-blue-600 tracking-wider block">Nueva Subcategoría Oficial</span>
+                    <h2 class="text-base font-black text-slate-900">Añadir Prueba en Deporte Individual</h2>
+                    <p class="text-xs text-slate-500">Completa los datos de la prueba o utiliza los botones de sugerencia rápida.</p>
+                </div>
+
+                <!-- Botones de sugerencias rápidas -->
+                <div class="flex flex-wrap items-center gap-1.5 p-3 rounded-xl bg-slate-50 border border-slate-200 text-xs">
+                    <span class="text-[10px] font-black uppercase text-slate-400 mr-1">Atajos sugeridos:</span>
+                    <button type="button" @click="$refs.nombrePrueba.value = '100 Metros Planos'; $refs.deportePadre.value = 'atletismo';" class="rounded-lg bg-white border border-slate-300 px-2.5 py-1 text-[11px] font-bold text-slate-700 hover:bg-slate-100 cursor-pointer shadow-2xs">+ 100m Planos</button>
+                    <button type="button" @click="$refs.nombrePrueba.value = 'Con Obstáculos'; $refs.deportePadre.value = 'atletismo';" class="rounded-lg bg-white border border-slate-300 px-2.5 py-1 text-[11px] font-bold text-slate-700 hover:bg-slate-100 cursor-pointer shadow-2xs">+ Con Obstáculos</button>
+                    <button type="button" @click="$refs.nombrePrueba.value = '110m con Vallas'; $refs.deportePadre.value = 'atletismo';" class="rounded-lg bg-white border border-slate-300 px-2.5 py-1 text-[11px] font-bold text-slate-700 hover:bg-slate-100 cursor-pointer shadow-2xs">+ 110m Vallas</button>
+                    <button type="button" @click="$refs.nombrePrueba.value = 'Salto Largo'; $refs.deportePadre.value = 'atletismo';" class="rounded-lg bg-white border border-slate-300 px-2.5 py-1 text-[11px] font-bold text-slate-700 hover:bg-slate-100 cursor-pointer shadow-2xs">+ Salto Largo</button>
+                    <button type="button" @click="$refs.nombrePrueba.value = 'Lanzamiento de Bala'; $refs.deportePadre.value = 'atletismo';" class="rounded-lg bg-white border border-slate-300 px-2.5 py-1 text-[11px] font-bold text-slate-700 hover:bg-slate-100 cursor-pointer shadow-2xs">+ Lanzamiento de Bala</button>
+                    <button type="button" @click="$refs.nombrePrueba.value = '50m Libre'; $refs.deportePadre.value = 'natacion';" class="rounded-lg bg-white border border-slate-300 px-2.5 py-1 text-[11px] font-bold text-slate-700 hover:bg-slate-100 cursor-pointer shadow-2xs">+ 50m Libre (Natación)</button>
+                    <button type="button" @click="$refs.nombrePrueba.value = '100m Espalda'; $refs.deportePadre.value = 'natacion';" class="rounded-lg bg-white border border-slate-300 px-2.5 py-1 text-[11px] font-bold text-slate-700 hover:bg-slate-100 cursor-pointer shadow-2xs">+ 100m Espalda</button>
+                    <button type="button" @click="$refs.nombrePrueba.value = '100m Mariposa'; $refs.deportePadre.value = 'natacion';" class="rounded-lg bg-white border border-slate-300 px-2.5 py-1 text-[11px] font-bold text-slate-700 hover:bg-slate-100 cursor-pointer shadow-2xs">+ 100m Mariposa</button>
+                </div>
+
+                <form action="{{ route('delegado.subcategoria.guardar') }}" method="POST" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4">
+                    @csrf
+                    <div>
+                        <label class="block text-xs font-bold uppercase text-slate-700 mb-1">Deporte Individual *</label>
+                        <select name="deporte_padre_id" x-ref="deportePadre" required class="w-full rounded-lg border border-slate-300 px-3.5 py-2 text-xs font-semibold text-slate-900 focus:border-slate-900 focus:outline-none bg-white">
+                            @foreach($deportesIndividuales as $depInd)
+                                <option value="{{ $depInd->id }}">{{ $depInd->nombre }}</option>
+                            @endforeach
+                        </select>
+                    </div>
+
+                    <div>
+                        <label class="block text-xs font-bold uppercase text-slate-700 mb-1">Nombre de la Prueba *</label>
+                        <input type="text" name="nombre" x-ref="nombrePrueba" placeholder="Ej. 100 Metros Planos" required class="w-full rounded-lg border border-slate-300 px-3.5 py-2 text-xs text-slate-900 focus:border-slate-900 focus:outline-none" />
+                    </div>
+
+                    <div>
+                        <label class="block text-xs font-bold uppercase text-slate-700 mb-1">Categoría</label>
+                        <select name="categoria" class="w-full rounded-lg border border-slate-300 px-3.5 py-2 text-xs font-semibold text-slate-900 focus:border-slate-900 focus:outline-none bg-white">
+                            <option value="Cat. B">Categoría B (13-14 años)</option>
+                            <option value="Cat. C">Categoría C (15-17 años)</option>
+                            <option value="Cat. A">Categoría A (10-12 años)</option>
+                            <option value="Libre">Libre / Única</option>
+                        </select>
+                    </div>
+
+                    <div>
+                        <label class="block text-xs font-bold uppercase text-slate-700 mb-1">Rama / Género</label>
+                        <select name="genero" class="w-full rounded-lg border border-slate-300 px-3.5 py-2 text-xs font-semibold text-slate-900 focus:border-slate-900 focus:outline-none bg-white">
+                            <option value="Varones">Varones</option>
+                            <option value="Damas">Damas</option>
+                            <option value="Mixto">Mixto</option>
+                        </select>
+                    </div>
+
+                    <div>
+                        <label class="block text-xs font-bold uppercase text-slate-700 mb-1">Fechas Oficiales</label>
+                        <input type="text" name="fechas_cronograma" placeholder="Ej. 28 de Setiembre" class="w-full rounded-lg border border-slate-300 px-3.5 py-2 text-xs text-slate-900 focus:border-slate-900 focus:outline-none" />
+                    </div>
+
+                    <div>
+                        <label class="block text-xs font-bold uppercase text-slate-700 mb-1">Horario de Competencia</label>
+                        <input type="text" name="horario_cronograma" placeholder="Ej. 09:30 AM" class="w-full rounded-lg border border-slate-300 px-3.5 py-2 text-xs text-slate-900 focus:border-slate-900 focus:outline-none" />
+                    </div>
+
+                    <div class="sm:col-span-2">
+                        <label class="block text-xs font-bold uppercase text-slate-700 mb-1">Escenario / Pista / Piscina</label>
+                        <input type="text" name="sede_principal" placeholder="Opcional (hereda la sede del deporte)" class="w-full rounded-lg border border-slate-300 px-3.5 py-2 text-xs text-slate-900 focus:border-slate-900 focus:outline-none" />
+                    </div>
+
+                    <div class="sm:col-span-2 md:col-span-4 flex justify-end">
+                        <button type="submit" class="inline-flex items-center gap-1.5 rounded-lg bg-slate-900 px-5 py-2.5 text-xs font-black uppercase text-white hover:bg-slate-800 transition cursor-pointer">
+                            <span>+ Guardar y Publicar Prueba</span>
+                        </button>
+                    </div>
+                </form>
+            </div>
+
+            <!-- Listado de Pruebas Registradas agrupadas por Deporte -->
+            <div class="space-y-4">
+                <h3 class="text-xs font-black uppercase text-slate-700 tracking-wider">Pruebas Oficiales Registradas por Disciplina</h3>
+                @foreach($deportesIndividuales as $depInd)
+                    <div class="rounded-xl border border-slate-200 bg-white p-5 shadow-2xs space-y-3">
+                        <div class="flex items-center justify-between border-b border-slate-100 pb-2">
+                            <div class="flex items-center gap-2">
+                                <span class="size-3 rounded-full" style="background-color: {{ $depInd->color_acento ?: '#2563eb' }}"></span>
+                                <h4 class="font-black text-sm text-slate-900">{{ $depInd->nombre }}</h4>
+                                <span class="rounded bg-slate-100 px-2 py-0.5 text-[10px] font-bold text-slate-600">
+                                    {{ $depInd->subcategorias->count() }} pruebas registradas
+                                </span>
+                            </div>
+                            <a href="{{ route('disciplina.show', $depInd->slug) }}" target="_blank" class="text-xs font-bold text-blue-600 hover:text-blue-800 flex items-center gap-1">
+                                <span>Ver en Sitio Público</span>
+                                <svg class="size-3" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="m9 18 6-6-6-6"/></svg>
+                            </a>
+                        </div>
+
+                        @if($depInd->subcategorias->isNotEmpty())
+                            <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3">
+                                @foreach($depInd->subcategorias as $sub)
+                                    <div class="rounded-lg border border-slate-200 p-3 bg-slate-50 flex flex-col justify-between">
+                                        <div>
+                                            <div class="flex items-center justify-between gap-1 mb-1">
+                                                <span class="text-[10px] font-black uppercase tracking-wider text-blue-700">
+                                                    {{ $sub->categoria }} {{ $sub->genero ? '· ' . $sub->genero : '' }}
+                                                </span>
+                                                <span class="text-[10px] font-bold text-slate-400">
+                                                    {{ $sub->horario_cronograma ?: 'Por definir' }}
+                                                </span>
+                                            </div>
+                                            <h5 class="text-xs font-black text-slate-900">{{ $sub->nombre }}</h5>
+                                            <p class="text-[11px] text-slate-500 mt-1 truncate">{{ $sub->sede_principal }}</p>
+                                        </div>
+                                        <div class="mt-2 pt-2 border-t border-slate-200/80 flex items-center justify-between text-[11px]">
+                                            <span class="text-amber-800 font-semibold truncate">
+                                                {{ $sub->campeon_actual ? '🏆 ' . $sub->campeon_actual : 'Sin proclamar' }}
+                                            </span>
+                                            <a href="{{ route('disciplina.show', ['slug' => $depInd->slug, 'sub' => $sub->slug]) }}" target="_blank" class="font-bold text-blue-600 hover:underline shrink-0">
+                                                Ver Ficha
+                                            </a>
+                                        </div>
+                                    </div>
+                                @endforeach
+                            </div>
+                        @else
+                            <p class="text-xs text-slate-400 italic py-2">
+                                No se han registrado subcategorías ni pruebas aún para {{ $depInd->nombre }}. Puedes agregar la primera en el formulario superior.
+                            </p>
+                        @endif
+                    </div>
+                @endforeach
+            </div>
+        </div>
     </div>
 </div>
 @endsection

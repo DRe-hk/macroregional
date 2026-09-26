@@ -24,6 +24,7 @@ Route::middleware(['auth', 'delegado'])->prefix('delegado')->name('delegado.')->
     Route::post('/marcador', [DelegadoController::class, 'actualizarMarcador'])->name('marcador');
     Route::post('/atletas', [DelegadoController::class, 'guardarAtleta'])->name('atleta.guardar');
     Route::delete('/atletas/{id}', [DelegadoController::class, 'eliminarAtleta'])->name('atleta.eliminar');
+    Route::post('/subcategorias-individuales', [DelegadoController::class, 'guardarSubcategoriaIndividual'])->name('subcategoria.guardar');
 });
 
 // --- Suite de Administración General (Acceso directo por URL o login de admin) ---

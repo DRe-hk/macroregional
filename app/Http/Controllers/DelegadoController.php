@@ -12,6 +12,7 @@ use App\Services\TournamentService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Str;
 use Illuminate\View\View;
 
 class DelegadoController extends Controller
@@ -62,9 +63,15 @@ class DelegadoController extends Controller
             ->orderBy('nombre_completo')
             ->get();
 
+        $deportesIndividuales = Disciplina::where('tipo', 'INDIVIDUAL')
+            ->whereNull('parent_id')
+            ->with(['subcategorias' => fn ($q) => $q->orderBy('nombre')])
+            ->orderBy('nombre')
+            ->get();
+
         $torneo = Torneo::actual();
 
-        return view('delegado.index', compact('torneo', 'user', 'delegacion', 'partidos', 'disciplinas', 'atletas'));
+        return view('delegado.index', compact('torneo', 'user', 'delegacion', 'partidos', 'disciplinas', 'atletas', 'deportesIndividuales'));
     }
 
     public function actualizarMarcador(Request $request): RedirectResponse
@@ -151,6 +158,50 @@ class DelegadoController extends Controller
         $atleta->delete();
 
         return back()->with('success', 'Deportista retirado de la nómina.');
+    }
+
+    public function guardarSubcategoriaIndividual(Request $request): RedirectResponse
+    {
+        $data = $request->validate([
+            'deporte_padre_id' => ['required', 'string', 'exists:disciplinas,id'],
+            'nombre' => ['required', 'string', 'max:100'],
+            'categoria' => ['nullable', 'string', 'max:50'],
+            'genero' => ['nullable', 'string', 'max:30'],
+            'fechas_cronograma' => ['nullable', 'string', 'max:150'],
+            'horario_cronograma' => ['nullable', 'string', 'max:100'],
+            'sede_principal' => ['nullable', 'string', 'max:150'],
+        ]);
+
+        $padre = Disciplina::findOrFail($data['deporte_padre_id']);
+
+        if (! $padre->esIndividual()) {
+            return back()->with('error', 'Solo se pueden crear pruebas libres en deportes individuales.');
+        }
+
+        $slugBase = $padre->slug.'-'.Str::slug($data['nombre']).(! empty($data['categoria']) ? '-'.Str::slug($data['categoria']) : '').(! empty($data['genero']) ? '-'.Str::slug($data['genero']) : '');
+        $id = $slugBase;
+
+        Disciplina::updateOrCreate(
+            ['id' => $id],
+            [
+                'parent_id' => $padre->id,
+                'slug' => $slugBase,
+                'nombre' => $data['nombre'],
+                'categoria' => $data['categoria'] ?? $padre->categoria,
+                'genero' => $data['genero'] ?? null,
+                'tipo' => 'INDIVIDUAL',
+                'sistema_puntuacion' => 'INDIVIDUAL',
+                'color_acento' => $padre->color_acento,
+                'foto_url' => $padre->foto_url,
+                'foto_referencia_url' => $padre->foto_referencia_url,
+                'descripcion' => 'Prueba oficial de '.$padre->nombre.(! empty($data['categoria']) ? ' ('.$data['categoria'].')' : '').(! empty($data['genero']) ? ' - Rama '.$data['genero'] : ''),
+                'sede_principal' => ! empty($data['sede_principal']) ? $data['sede_principal'] : $padre->sede_principal,
+                'fechas_cronograma' => ! empty($data['fechas_cronograma']) ? $data['fechas_cronograma'] : $padre->fechas_cronograma,
+                'horario_cronograma' => $data['horario_cronograma'] ?? $padre->horario_cronograma,
+            ]
+        );
+
+        return back()->with('success', 'Prueba "'.$data['nombre'].'" añadida con éxito a '.$padre->nombre.'.');
     }
 
     /**

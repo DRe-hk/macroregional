@@ -333,4 +333,101 @@ class TournamentFeatureTest extends TestCase
         $torneo = Torneo::first();
         $this->assertNotEmpty($torneo->carrusel_slides);
     }
+
+    public function test_admin_can_edit_existing_sport_and_delegation(): void
+    {
+        $admin = User::where('username', 'admin')->first();
+
+        // 1. Editar deporte existente (Taekwondo)
+        $responseDeporte = $this->actingAs($admin)->post('/admin/deportes', [
+            'id' => 'taekwondo',
+            'nombre' => 'Taekwondo Oficial',
+            'parent_id' => null,
+            'tipo' => 'INDIVIDUAL',
+            'sistema_puntuacion' => 'INDIVIDUAL',
+            'color_acento' => '#dc2626',
+            'categoria' => 'Cat. B',
+            'genero' => 'Mixto',
+            'sede_principal' => 'Coliseo Eduardo Rodríguez Puno',
+            'fechas_cronograma' => '29 de Setiembre',
+            'horario_cronograma' => '10:00 AM',
+            'descripcion' => 'Combates oficiales de Taekwondo JEDPA 2026',
+        ]);
+
+        $responseDeporte->assertSessionHas('success');
+        $this->assertDatabaseHas('disciplinas', [
+            'id' => 'taekwondo',
+            'nombre' => 'Taekwondo Oficial',
+            'sede_principal' => 'Coliseo Eduardo Rodríguez Puno',
+        ]);
+
+        // 2. Editar delegación existente (Puno)
+        $responseDelegacion = $this->actingAs($admin)->post('/admin/delegaciones', [
+            'id' => 'puno',
+            'nombre' => 'DRE Puno (Sede Anfitriona)',
+            'siglas' => 'PUNO',
+            'provincia' => 'Puno Capital',
+        ]);
+
+        $responseDelegacion->assertSessionHas('success');
+        $this->assertDatabaseHas('delegaciones', [
+            'id' => 'puno',
+            'nombre' => 'DRE Puno (Sede Anfitriona)',
+            'provincia' => 'Puno Capital',
+        ]);
+    }
+
+    public function test_delegates_and_admin_can_freely_create_individual_subcategories(): void
+    {
+        $delegado = User::where('username', 'delegado_puno')->first();
+
+        // 1. Delegado crea prueba en Atletismo (100 Metros Planos)
+        $responseAtle = $this->actingAs($delegado)->post('/delegado/subcategorias-individuales', [
+            'deporte_padre_id' => 'atletismo',
+            'nombre' => '100 Metros Planos',
+            'categoria' => 'Cat. B',
+            'genero' => 'Varones',
+            'fechas_cronograma' => '28 de Setiembre',
+            'horario_cronograma' => '08:30 AM',
+            'sede_principal' => 'Pista Atlética Torres Belón',
+        ]);
+
+        $responseAtle->assertSessionHas('success');
+        $this->assertDatabaseHas('disciplinas', [
+            'parent_id' => 'atletismo',
+            'nombre' => '100 Metros Planos',
+            'tipo' => 'INDIVIDUAL',
+            'categoria' => 'Cat. B',
+            'genero' => 'Varones',
+        ]);
+
+        // 2. Delegado crea prueba en Natación (50m Libre)
+        $responseNat = $this->actingAs($delegado)->post('/delegado/subcategorias-individuales', [
+            'deporte_padre_id' => 'natacion',
+            'nombre' => '50m Libre',
+            'categoria' => 'Cat. C',
+            'genero' => 'Damas',
+            'fechas_cronograma' => '29 de Setiembre',
+            'horario_cronograma' => '10:00 AM',
+            'sede_principal' => 'Piscina Municipal Puno',
+        ]);
+
+        $responseNat->assertSessionHas('success');
+        $this->assertDatabaseHas('disciplinas', [
+            'parent_id' => 'natacion',
+            'nombre' => '50m Libre',
+            'tipo' => 'INDIVIDUAL',
+            'categoria' => 'Cat. C',
+            'genero' => 'Damas',
+        ]);
+
+        // 3. Verificar que las pruebas creadas son visibles públicamente
+        $publicAtle = $this->get('/d/atletismo');
+        $publicAtle->assertStatus(200);
+        $publicAtle->assertSee('100 Metros Planos');
+
+        $publicNat = $this->get('/d/natacion');
+        $publicNat->assertStatus(200);
+        $publicNat->assertSee('50m Libre');
+    }
 }
