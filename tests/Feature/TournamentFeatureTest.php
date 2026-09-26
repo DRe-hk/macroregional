@@ -32,6 +32,15 @@ class TournamentFeatureTest extends TestCase
         $response->assertStatus(200);
         $response->assertSee('Tabla de Posiciones');
 
+        $response = $this->get('/clasificacion?deporte=futbol');
+        $response->assertStatus(200);
+        $response->assertSee('Subcategoría:');
+        $response->assertSee('Fútbol Cat. B Damas');
+
+        $response = $this->get('/clasificacion?deporte=futbol&sub=futbol-b-varones');
+        $response->assertStatus(200);
+        $response->assertSee('Fútbol Cat. B Varones');
+
         $response = $this->get('/equipos');
         $response->assertStatus(200);
         $response->assertSee('Delegaciones Participantes');

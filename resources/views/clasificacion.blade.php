@@ -44,33 +44,68 @@
 
             @foreach($disciplinas as $d)
                 @php
-                    $esActivo = $disciplinaSeleccionada && $disciplinaSeleccionada->id === $d->id;
+                    $esActivo = ($disciplinaPadre && $disciplinaPadre->id === $d->id)
+                        || ($disciplinaSeleccionada && $disciplinaSeleccionada->id === $d->id);
                 @endphp
                 <a
                     href="{{ route('clasificacion', ['deporte' => $d->slug]) }}"
-                    class="flex items-center gap-1.5 px-4 py-2 text-xs font-black uppercase tracking-wider rounded-lg transition-colors shrink-0 {{ $esActivo ? 'bg-slate-900 text-white shadow-2xs' : 'bg-white text-slate-600 hover:bg-slate-100 border border-slate-200' }}"
+                    class="flex items-center gap-2 px-4 py-2 text-xs font-black uppercase tracking-wider rounded-lg transition-all shrink-0 {{ $esActivo ? 'text-white shadow-xs' : 'bg-white text-slate-600 hover:bg-slate-100 border border-slate-200' }}"
+                    style="{{ $esActivo ? 'background-color: ' . ($d->color_acento ?: '#0f172a') . ';' : '' }}"
                 >
+                    @if(!$esActivo && $d->color_acento)
+                        <span class="size-2 rounded-full shrink-0" style="background-color: {{ $d->color_acento }}"></span>
+                    @endif
                     <span>{{ $d->nombre }}</span>
                 </a>
             @endforeach
         </div>
 
+        @if($disciplinaPadre && $disciplinaPadre->subcategorias->isNotEmpty())
+            <!-- Selector de Subcategorías -->
+            <div class="flex items-center gap-2 border-b border-slate-200 pb-3 overflow-x-auto">
+                <span class="text-[11px] font-black uppercase tracking-wider text-slate-400 shrink-0 mr-1 flex items-center gap-1">
+                    <svg class="size-3.5 text-slate-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="m9 18 6-6-6-6"/></svg>
+                    Subcategoría:
+                </span>
+                @foreach($disciplinaPadre->subcategorias as $sub)
+                    @php
+                        $esSubActiva = $disciplinaSeleccionada && $disciplinaSeleccionada->id === $sub->id;
+                    @endphp
+                    <a
+                        href="{{ route('clasificacion', ['deporte' => $disciplinaPadre->slug, 'sub' => $sub->slug]) }}"
+                        class="flex items-center gap-1.5 px-3.5 py-1.5 text-xs font-bold rounded-lg transition-all shrink-0 {{ $esSubActiva ? 'text-white shadow-xs font-black' : 'bg-slate-100 text-slate-700 hover:bg-slate-200' }}"
+                        style="{{ $esSubActiva ? 'background-color: ' . ($sub->color_acento ?: $disciplinaPadre->color_acento) . ';' : '' }}"
+                    >
+                        <span>{{ $sub->nombre }}</span>
+                    </a>
+                @endforeach
+            </div>
+        @endif
+
         @if($disciplinaSeleccionada)
             <!-- Banner Informativo del Deporte Seleccionado -->
-            <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 rounded-xl border border-slate-200 bg-slate-50 p-4 shadow-2xs">
+            <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 rounded-xl border border-slate-200 bg-slate-50 p-4 shadow-2xs" style="border-left: 5px solid {{ $disciplinaSeleccionada->color_acento ?: ($disciplinaPadre->color_acento ?? '#2563eb') }}">
                 <div>
-                    <span class="text-[11px] font-black uppercase tracking-wider text-blue-600 block">
-                        {{ $disciplinaSeleccionada->categoria }}
+                    <span class="text-[11px] font-black uppercase tracking-wider block" style="color: {{ $disciplinaSeleccionada->color_acento ?: ($disciplinaPadre->color_acento ?? '#2563eb') }}">
+                        {{ $disciplinaSeleccionada->categoria ?: 'Competencia Oficial' }}
+                        @if($disciplinaSeleccionada->genero)
+                            · Rama {{ $disciplinaSeleccionada->genero }}
+                        @endif
                     </span>
                     <h2 class="text-xl font-black text-slate-900">
                         Tabla de Posiciones · {{ $disciplinaSeleccionada->nombre }}
                     </h2>
                     <p class="text-xs text-slate-500 font-medium mt-0.5">
-                        Estadísticas y puntuación exclusiva para esta disciplina.
+                        Estadísticas y puntuación oficial según RVM N° 092-2026-MINEDU.
                     </p>
                 </div>
                 <div>
-                    <a href="{{ route('disciplina.show', $disciplinaSeleccionada->slug) }}" class="inline-flex items-center gap-1.5 rounded-lg bg-slate-900 px-3.5 py-2 text-xs font-bold text-white shadow-2xs transition hover:bg-slate-800">
+                    @php
+                        $fixtureUrl = $disciplinaPadre && $disciplinaPadre->id !== $disciplinaSeleccionada->id
+                            ? route('disciplina.show', ['slug' => $disciplinaPadre->slug, 'sub' => $disciplinaSeleccionada->slug])
+                            : route('disciplina.show', $disciplinaSeleccionada->slug);
+                    @endphp
+                    <a href="{{ $fixtureUrl }}" class="inline-flex items-center gap-1.5 rounded-lg bg-slate-900 px-3.5 py-2 text-xs font-bold text-white shadow-2xs transition hover:bg-slate-800">
                         <span>Ver Llaves & Fixture</span>
                         <svg class="size-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="m9 18 6-6-6-6"/></svg>
                     </a>

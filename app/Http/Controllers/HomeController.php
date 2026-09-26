@@ -33,18 +33,21 @@ class HomeController extends Controller
             ->get();
 
         $deporteSlug = $request->query('deporte');
+        $disciplinaPadre = null;
         $disciplinaSeleccionada = null;
         $tablaPorDisciplina = null;
 
         if ($deporteSlug) {
-            $disciplinaSeleccionada = Disciplina::where('slug', $deporteSlug)->first();
-            if ($disciplinaSeleccionada) {
-                // Si seleccionó un deporte padre que tiene subcategorías, usar la primera por defecto
-                if ($disciplinaSeleccionada->subcategorias()->exists()) {
-                    $subId = $request->query('sub');
-                    $sub = $subId
-                        ? Disciplina::where('slug', $subId)->first()
-                        : $disciplinaSeleccionada->subcategorias->first();
+            $disciplinaBase = Disciplina::with('subcategorias')->where('slug', $deporteSlug)->first();
+            if ($disciplinaBase) {
+                $disciplinaPadre = $disciplinaBase;
+                $disciplinaSeleccionada = $disciplinaBase;
+
+                if ($disciplinaBase->subcategorias->isNotEmpty()) {
+                    $subSlug = $request->query('sub');
+                    $sub = $subSlug
+                        ? $disciplinaBase->subcategorias->firstWhere('slug', $subSlug)
+                        : $disciplinaBase->subcategorias->first();
                     if ($sub) {
                         $disciplinaSeleccionada = $sub;
                     }
@@ -63,6 +66,7 @@ class HomeController extends Controller
             'torneo',
             'delegaciones',
             'disciplinas',
+            'disciplinaPadre',
             'disciplinaSeleccionada',
             'tablaPorDisciplina'
         ));
