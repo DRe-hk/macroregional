@@ -17,6 +17,10 @@ return new class extends Migration
             $table->string('subtitulo');
             $table->string('organizador');
             $table->string('sede_principal');
+            $table->string('logo_texto')->default('JEDPA 2026');
+            $table->string('logo_subtexto')->default('Macroregional Sede Puno');
+            $table->text('footer_texto')->nullable();
+            $table->json('carrusel_slides')->nullable();
             $table->integer('anio')->default(2026);
             $table->integer('avance_porcentaje')->default(0);
             $table->timestamps();

@@ -4,6 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 
 class Partido extends Model
 {
@@ -24,10 +25,26 @@ class Partido extends Model
         'visitante_goles',
         'ganador_id',
         'estado',
+        'fecha',
         'horario',
         'cancha',
+        'es_wo',
+        'foto_evidencia',
+        'sets_detalle',
         'observaciones',
     ];
+
+    /**
+     * @return array<string, string>
+     */
+    protected function casts(): array
+    {
+        return [
+            'fecha' => 'date:Y-m-d',
+            'es_wo' => 'boolean',
+            'sets_detalle' => 'array',
+        ];
+    }
 
     public function disciplina(): BelongsTo
     {
@@ -47,5 +64,10 @@ class Partido extends Model
     public function ganador(): BelongsTo
     {
         return $this->belongsTo(Delegacion::class, 'ganador_id');
+    }
+
+    public function delegados(): BelongsToMany
+    {
+        return $this->belongsToMany(User::class, 'delegado_partidos', 'partido_id', 'user_id');
     }
 }

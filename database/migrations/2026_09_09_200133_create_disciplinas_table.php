@@ -13,15 +13,23 @@ return new class extends Migration
     {
         Schema::create('disciplinas', function (Blueprint $table) {
             $table->string('id')->primary();
+            $table->string('parent_id')->nullable();
+            $table->foreign('parent_id')->references('id')->on('disciplinas')->cascadeOnDelete();
             $table->string('slug')->unique();
             $table->string('nombre');
-            $table->string('categoria');
+            $table->string('categoria')->nullable();
+            $table->string('genero')->nullable(); // Varones, Damas, Mixto
+            $table->string('tipo')->default('COLECTIVO'); // COLECTIVO, INDIVIDUAL
+            $table->string('sistema_puntuacion')->default('FUTBOL'); // FUTBOL, BASQUET, HANDBALL, VOLEIBOL, INDIVIDUAL
             $table->string('color_acento')->default('#2563eb');
             $table->text('foto_url')->nullable();
             $table->text('descripcion')->nullable();
             $table->string('sede_principal')->nullable();
             $table->text('sede_maps_url')->nullable();
+            $table->string('fechas_cronograma')->nullable();
+            $table->string('horario_cronograma')->nullable();
             $table->string('campeon_actual')->nullable();
+            $table->json('podio')->nullable(); // Para deportes individuales: { 'oro': ..., 'plata': ..., 'bronce': ... }
             $table->timestamps();
         });
     }

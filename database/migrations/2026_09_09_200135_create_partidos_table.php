@@ -26,8 +26,12 @@ return new class extends Migration
             $table->string('ganador_id')->nullable();
             $table->foreign('ganador_id')->references('id')->on('delegaciones')->nullOnDelete();
             $table->string('estado')->default('PROGRAMADO');
+            $table->date('fecha')->nullable();
             $table->string('horario')->nullable();
             $table->string('cancha')->nullable();
+            $table->boolean('es_wo')->default(false);
+            $table->text('foto_evidencia')->nullable();
+            $table->json('sets_detalle')->nullable();
             $table->text('observaciones')->nullable();
             $table->timestamps();
         });

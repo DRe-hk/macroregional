@@ -64,10 +64,10 @@
                 @endif
                 <div class="flex flex-col">
                     <span class="font-extrabold tracking-tight text-base sm:text-lg text-slate-900 leading-tight">
-                        MACROREGIONAL 2026
+                        {{ $torneo->logo_texto ?? 'JEDPA 2026' }}
                     </span>
                     <span class="text-[10px] font-bold text-slate-500 tracking-wider uppercase">
-                        {{ $torneo->subtitulo ?? 'Competencia Deportiva Oficial' }}
+                        {{ $torneo->logo_subtexto ?? ($torneo->subtitulo ?? 'Sede Macrorregional Puno') }}
                     </span>
                 </div>
             </a>
@@ -170,6 +170,23 @@
         @yield('content')
     </main>
 
-    <!-- NOTA: El footer ha sido retirado completamente de todas las vistas a solicitud -->
+    <!-- Footer Institucional Oficial -->
+    <footer class="mt-auto border-t border-slate-200 bg-slate-50 py-6 px-4 sm:px-6">
+        <div class="mx-auto max-w-[1360px] flex flex-col sm:flex-row items-center justify-between gap-3 text-xs text-slate-500">
+            <div class="flex items-center gap-2">
+                <span class="size-2 rounded-full bg-blue-600"></span>
+                <p class="font-medium">
+                    {{ $torneo->footer_texto ?: 'Dirección Regional de Educación Puno - Oficina de Informática. Todos los derechos reservados.' }}
+                </p>
+            </div>
+            <div class="flex items-center gap-4 text-[11px] font-bold text-slate-400">
+                <span>JEDPA {{ $torneo->anio ?? 2026 }}</span>
+                <span>·</span>
+                <span>Etapa Macrorregional</span>
+                <span>·</span>
+                <span>Sede Puno</span>
+            </div>
+        </div>
+    </footer>
 </body>
 </html>

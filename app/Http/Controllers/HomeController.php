@@ -16,7 +16,9 @@ class HomeController extends Controller
     public function index(): View
     {
         $torneo = Torneo::actual();
-        $disciplinas = Disciplina::with(['partidos'])->get();
+        $disciplinas = Disciplina::principales()
+            ->with(['subcategorias', 'partidos'])
+            ->get();
         $totalEquipos = Delegacion::count();
 
         return view('home', compact('torneo', 'disciplinas', 'totalEquipos'));
@@ -25,15 +27,28 @@ class HomeController extends Controller
     public function clasificacion(Request $request): View
     {
         $torneo = Torneo::actual();
-        $disciplinas = Disciplina::orderBy('nombre')->get();
-        $deporteSlug = $request->query('deporte');
+        $disciplinas = Disciplina::principales()
+            ->with('subcategorias')
+            ->orderBy('nombre')
+            ->get();
 
+        $deporteSlug = $request->query('deporte');
         $disciplinaSeleccionada = null;
         $tablaPorDisciplina = null;
 
         if ($deporteSlug) {
             $disciplinaSeleccionada = Disciplina::where('slug', $deporteSlug)->first();
             if ($disciplinaSeleccionada) {
+                // Si seleccionó un deporte padre que tiene subcategorías, usar la primera por defecto
+                if ($disciplinaSeleccionada->subcategorias()->exists()) {
+                    $subId = $request->query('sub');
+                    $sub = $subId
+                        ? Disciplina::where('slug', $subId)->first()
+                        : $disciplinaSeleccionada->subcategorias->first();
+                    if ($sub) {
+                        $disciplinaSeleccionada = $sub;
+                    }
+                }
                 $tablaPorDisciplina = $this->tournamentService->obtenerTablaPorDisciplina($disciplinaSeleccionada);
             }
         }
@@ -64,31 +79,120 @@ class HomeController extends Controller
     public function campeones(): View
     {
         $torneo = Torneo::actual();
-        $disciplinas = Disciplina::all();
-        $disciplinasConCampeon = $disciplinas->filter(fn ($d) => ! empty($d->campeon_actual));
 
-        return view('campeones', compact('torneo', 'disciplinasConCampeon'));
+        // 1. Deportes principales individuales (Natación, Atletismo)
+        $individuales = Disciplina::where('tipo', 'INDIVIDUAL')->get();
+
+        // 2. Deportes colectivos y subcategorías que ya tienen campeón consagrado
+        $colectivosConCampeon = Disciplina::where('tipo', 'COLECTIVO')
+            ->whereNotNull('campeon_actual')
+            ->where('campeon_actual', '!=', '')
+            ->with('parent')
+            ->get();
+
+        // 3. Resumen acumulado de campeonatos por delegación
+        $medallasPorDelegacion = [];
+        foreach (Delegacion::all() as $del) {
+            $medallasPorDelegacion[$del->nombre] = [
+                'delegacion' => $del,
+                'titulos' => 0,
+            ];
+        }
+
+        foreach ($individuales as $ind) {
+            if ($ind->campeon_actual && isset($medallasPorDelegacion[$ind->campeon_actual])) {
+                $medallasPorDelegacion[$ind->campeon_actual]['titulos']++;
+            }
+        }
+
+        foreach ($colectivosConCampeon as $col) {
+            if ($col->campeon_actual && isset($medallasPorDelegacion[$col->campeon_actual])) {
+                $medallasPorDelegacion[$col->campeon_actual]['titulos']++;
+            }
+        }
+
+        uasort($medallasPorDelegacion, fn ($a, $b) => $b['titulos'] <=> $a['titulos']);
+
+        return view('campeones', compact('torneo', 'individuales', 'colectivosConCampeon', 'medallasPorDelegacion'));
     }
 
     public function disciplina(Request $request, string $slug): View
     {
         $torneo = Torneo::actual();
-        $disciplina = Disciplina::with([
-            'partidos.local',
-            'partidos.visitante',
-            'partidos.ganador',
-        ])->where('slug', $slug)->firstOrFail();
+        $disciplinaBase = Disciplina::with('subcategorias')->where('slug', $slug)->firstOrFail();
 
-        // Agrupar partidos por ronda_numero directamente para la disciplina
+        // Si la disciplina tiene subcategorías, determinar cuál mostrar
+        $subSlug = $request->query('sub');
+        $disciplina = $disciplinaBase;
+
+        if ($disciplinaBase->subcategorias->isNotEmpty()) {
+            if ($subSlug) {
+                $sub = $disciplinaBase->subcategorias->firstWhere('slug', $subSlug);
+                if ($sub) {
+                    $disciplina = $sub;
+                }
+            } else {
+                $disciplina = $disciplinaBase->subcategorias->first();
+            }
+        }
+
+        // Si es deporte individual, no cargamos fixture de partidos
+        if ($disciplina->esIndividual()) {
+            return view('disciplina', [
+                'torneo' => $torneo,
+                'disciplinaPadre' => $disciplinaBase,
+                'disciplina' => $disciplina,
+                'rondasMap' => [],
+                'tablaPosiciones' => [],
+                'fechasDisponibles' => [],
+                'fechaActiva' => null,
+            ]);
+        }
+
+        // Cargar partidos de la disciplina activa
+        $queryPartidos = $disciplina->partidos()
+            ->with(['local', 'visitante', 'ganador'])
+            ->orderBy('ronda_numero')
+            ->orderBy('fecha')
+            ->orderBy('horario');
+
+        $todosLosPartidos = (clone $queryPartidos)->get();
+
+        // Fechas únicas para la barra de filtro temporal
+        $fechasDisponibles = $todosLosPartidos
+            ->pluck('fecha')
+            ->filter()
+            ->map(fn ($f) => $f->format('Y-m-d'))
+            ->unique()
+            ->sort()
+            ->values()
+            ->all();
+
+        $fechaActiva = $request->query('fecha');
+        if ($fechaActiva) {
+            $partidos = $todosLosPartidos->filter(fn ($p) => $p->fecha?->format('Y-m-d') === $fechaActiva);
+        } else {
+            $partidos = $todosLosPartidos;
+        }
+
+        // Agrupar partidos por ronda_numero
         $rondasMap = [];
-        foreach ($disciplina->partidos as $partido) {
+        foreach ($partidos as $partido) {
             $rondasMap[$partido->ronda_numero][] = $partido;
         }
         ksort($rondasMap);
 
-        // Obtener tabla de posiciones individual para esta disciplina
+        // Tabla de posiciones individual calculada
         $tablaPosiciones = $this->tournamentService->obtenerTablaPorDisciplina($disciplina);
 
-        return view('disciplina', compact('torneo', 'disciplina', 'rondasMap', 'tablaPosiciones'));
+        return view('disciplina', [
+            'torneo' => $torneo,
+            'disciplinaPadre' => $disciplinaBase,
+            'disciplina' => $disciplina,
+            'rondasMap' => $rondasMap,
+            'tablaPosiciones' => $tablaPosiciones,
+            'fechasDisponibles' => $fechasDisponibles,
+            'fechaActiva' => $fechaActiva,
+        ]);
     }
 }

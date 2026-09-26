@@ -23,14 +23,18 @@ class AdminController extends Controller
     {
         $torneo = Torneo::actual();
         $disciplinas = Disciplina::with([
+            'parent',
+            'subcategorias',
             'partidos.local',
             'partidos.visitante',
             'partidos.ganador',
         ])->get();
-        $delegaciones = Delegacion::orderBy('nombre')->get();
-        $usuarios = User::with('delegacion')->orderBy('role')->orderBy('name')->get();
 
-        return view('admin.index', compact('torneo', 'disciplinas', 'delegaciones', 'usuarios'));
+        $deportesPrincipales = $disciplinas->whereNull('parent_id');
+        $delegaciones = Delegacion::orderBy('nombre')->get();
+        $usuarios = User::with(['delegacion', 'disciplinasAsignadas'])->orderBy('role')->orderBy('name')->get();
+
+        return view('admin.index', compact('torneo', 'disciplinas', 'deportesPrincipales', 'delegaciones', 'usuarios'));
     }
 
     public function actualizarTorneo(Request $request): RedirectResponse
@@ -40,6 +44,9 @@ class AdminController extends Controller
             'subtitulo' => ['required', 'string', 'max:255'],
             'organizador' => ['required', 'string', 'max:255'],
             'sede_principal' => ['required', 'string', 'max:255'],
+            'logo_texto' => ['required', 'string', 'max:100'],
+            'logo_subtexto' => ['nullable', 'string', 'max:150'],
+            'footer_texto' => ['nullable', 'string', 'max:500'],
             'logo_url' => ['nullable', 'string', 'max:500'],
             'logo_file' => ['nullable', 'file', 'mimes:jpeg,png,jpg,webp,avif', 'max:5120'],
             'portada_url' => ['nullable', 'string', 'max:500'],
@@ -61,15 +68,64 @@ class AdminController extends Controller
         $torneo = Torneo::actual();
         $torneo->update($data);
 
-        return back()->with('success', 'Información general del torneo y portadas actualizadas.');
+        return back()->with('success', 'Configuración institucional del torneo, logo y footer actualizados.');
+    }
+
+    public function guardarSlideCarrusel(Request $request): RedirectResponse
+    {
+        $data = $request->validate([
+            'titulo' => ['required', 'string', 'max:150'],
+            'subtitulo' => ['nullable', 'string', 'max:255'],
+            'imagen_url' => ['nullable', 'string', 'max:500'],
+            'imagen_file' => ['nullable', 'file', 'mimes:jpeg,png,jpg,webp,avif', 'max:10240'],
+        ]);
+
+        $imagenUrl = $data['imagen_url'] ?? null;
+        if ($request->hasFile('imagen_file')) {
+            $imagenUrl = $this->almacenarImagenSegura($request->file('imagen_file'), 'torneo', 'slide');
+        }
+
+        if (! $imagenUrl) {
+            return back()->with('error', 'Debes proporcionar una URL o subir un archivo de imagen para el slide.');
+        }
+
+        $torneo = Torneo::actual();
+        $slides = $torneo->getSlides();
+
+        $slides[] = [
+            'imagen' => $imagenUrl,
+            'titulo' => $data['titulo'],
+            'subtitulo' => $data['subtitulo'] ?? '',
+        ];
+
+        $torneo->update(['carrusel_slides' => $slides]);
+
+        return back()->with('success', 'Slide añadido al carrusel Hero con éxito.');
+    }
+
+    public function eliminarSlideCarrusel(int $index): RedirectResponse
+    {
+        $torneo = Torneo::actual();
+        $slides = $torneo->getSlides();
+
+        if (isset($slides[$index])) {
+            array_splice($slides, $index, 1);
+            $torneo->update(['carrusel_slides' => $slides]);
+        }
+
+        return back()->with('success', 'Slide eliminado del carrusel.');
     }
 
     public function guardarDeporte(Request $request): RedirectResponse
     {
         $data = $request->validate([
             'id' => ['nullable', 'string'],
+            'parent_id' => ['nullable', 'string', 'exists:disciplinas,id'],
             'nombre' => ['required', 'string', 'max:100'],
-            'categoria' => ['required', 'string', 'max:50'],
+            'categoria' => ['nullable', 'string', 'max:50'],
+            'genero' => ['nullable', 'string', 'max:30'],
+            'tipo' => ['required', 'string', 'in:COLECTIVO,INDIVIDUAL'],
+            'sistema_puntuacion' => ['required', 'string', 'in:FUTBOL,FUTSAL,BASQUET,HANDBALL,VOLEIBOL,VOLEY_PLAYA,INDIVIDUAL'],
             'color_acento' => ['required', 'string', 'max:20'],
             'foto_url' => ['nullable', 'string', 'max:500'],
             'foto_file' => ['nullable', 'file', 'mimes:jpeg,png,jpg,webp,avif', 'max:5120'],
@@ -77,6 +133,8 @@ class AdminController extends Controller
             'foto_referencia_file' => ['nullable', 'file', 'mimes:jpeg,png,jpg,webp,avif', 'max:5120'],
             'descripcion' => ['nullable', 'string', 'max:500'],
             'sede_principal' => ['required', 'string', 'max:150'],
+            'fechas_cronograma' => ['nullable', 'string', 'max:150'],
+            'horario_cronograma' => ['nullable', 'string', 'max:100'],
         ]);
 
         $slug = Str::slug($data['nombre']);
@@ -97,18 +155,69 @@ class AdminController extends Controller
         Disciplina::updateOrCreate(
             ['id' => $id],
             [
+                'parent_id' => $data['parent_id'] ?: null,
                 'slug' => $slug,
                 'nombre' => $data['nombre'],
-                'categoria' => $data['categoria'],
+                'categoria' => $data['categoria'] ?? null,
+                'genero' => $data['genero'] ?? null,
+                'tipo' => $data['tipo'],
+                'sistema_puntuacion' => $data['sistema_puntuacion'],
                 'color_acento' => $data['color_acento'],
                 'foto_url' => $fotoUrl ?? ($disciplinaExistente?->foto_url ?? 'https://images.unsplash.com/photo-1508098682722-e99c43a406b2?w=800&auto=format&fit=crop&q=80'),
                 'foto_referencia_url' => $fotoRefUrl ?? $disciplinaExistente?->foto_referencia_url,
                 'descripcion' => $data['descripcion'] ?? '',
                 'sede_principal' => $data['sede_principal'],
+                'fechas_cronograma' => $data['fechas_cronograma'] ?? null,
+                'horario_cronograma' => $data['horario_cronograma'] ?? null,
             ]
         );
 
-        return back()->with('success', 'Disciplina deportiva e imágenes guardadas correctamente.');
+        return back()->with('success', 'Disciplina deportiva guardada correctamente.');
+    }
+
+    public function guardarPodioIndividual(Request $request, string $id): RedirectResponse
+    {
+        $disciplina = Disciplina::findOrFail($id);
+
+        $data = $request->validate([
+            'oro_delegacion' => ['required', 'string', 'max:150'],
+            'oro_atleta' => ['required', 'string', 'max:150'],
+            'oro_marca' => ['nullable', 'string', 'max:100'],
+            'plata_delegacion' => ['nullable', 'string', 'max:150'],
+            'plata_atleta' => ['nullable', 'string', 'max:150'],
+            'plata_marca' => ['nullable', 'string', 'max:100'],
+            'bronce_delegacion' => ['nullable', 'string', 'max:150'],
+            'bronce_atleta' => ['nullable', 'string', 'max:150'],
+            'bronce_marca' => ['nullable', 'string', 'max:100'],
+        ]);
+
+        $podio = [
+            'oro' => [
+                'delegacion' => $data['oro_delegacion'],
+                'atleta' => $data['oro_atleta'],
+                'marca' => $data['oro_marca'] ?? '',
+            ],
+        ];
+
+        if (! empty($data['plata_delegacion'])) {
+            $podio['plata'] = [
+                'delegacion' => $data['plata_delegacion'],
+                'atleta' => $data['plata_atleta'] ?? '',
+                'marca' => $data['plata_marca'] ?? '',
+            ];
+        }
+
+        if (! empty($data['bronce_delegacion'])) {
+            $podio['bronce'] = [
+                'delegacion' => $data['bronce_delegacion'],
+                'atleta' => $data['bronce_atleta'] ?? '',
+                'marca' => $data['bronce_marca'] ?? '',
+            ];
+        }
+
+        $this->tournamentService->actualizarPodioIndividual($disciplina, $podio);
+
+        return back()->with('success', 'Ganador y podio oficial registrados para '.$disciplina->nombre);
     }
 
     public function eliminarDeporte(string $id): RedirectResponse
@@ -168,6 +277,7 @@ class AdminController extends Controller
             'ronda_nombre' => ['required', 'string', 'max:50'],
             'local_id' => ['nullable', 'string', 'exists:delegaciones,id'],
             'visitante_id' => ['nullable', 'string', 'exists:delegaciones,id'],
+            'fecha' => ['nullable', 'date'],
             'horario' => ['nullable', 'string', 'max:50'],
             'cancha' => ['nullable', 'string', 'max:100'],
         ]);
@@ -181,12 +291,13 @@ class AdminController extends Controller
             'ronda_nombre' => $data['ronda_nombre'],
             'local_id' => $data['local_id'],
             'visitante_id' => $data['visitante_id'],
+            'fecha' => $data['fecha'] ?? null,
             'horario' => $data['horario'] ?? '09:00 AM',
             'cancha' => $data['cancha'] ?? 'Cancha Principal',
             'estado' => 'PROGRAMADO',
         ]);
 
-        return back()->with('success', 'Partido programado en el fixture correctamente.');
+        return back()->with('success', 'Partido programado en el fixture correctamente con fecha y hora.');
     }
 
     public function actualizarMarcador(Request $request): RedirectResponse
@@ -196,10 +307,17 @@ class AdminController extends Controller
             'local_goles' => ['nullable', 'integer', 'min:0'],
             'visitante_goles' => ['nullable', 'integer', 'min:0'],
             'ganador_id' => ['nullable', 'string', 'exists:delegaciones,id'],
+            'es_wo' => ['nullable', 'boolean'],
+            'evidencia_file' => ['nullable', 'file', 'mimes:jpeg,png,jpg,webp,avif', 'max:10240'],
             'observaciones' => ['nullable', 'string', 'max:500'],
         ]);
 
         $partido = Partido::findOrFail($data['partido_id']);
+
+        $fotoEvidencia = null;
+        if ($request->hasFile('evidencia_file')) {
+            $fotoEvidencia = $this->almacenarImagenSegura($request->file('evidencia_file'), 'evidencias', 'acta_'.$partido->id);
+        }
 
         $localGoles = $data['local_goles'] !== null ? (int) $data['local_goles'] : null;
         $visitanteGoles = $data['visitante_goles'] !== null ? (int) $data['visitante_goles'] : null;
@@ -209,10 +327,12 @@ class AdminController extends Controller
             $localGoles,
             $visitanteGoles,
             $data['ganador_id'] ?? null,
-            $data['observaciones'] ?? null
+            $data['observaciones'] ?? null,
+            (bool) ($data['es_wo'] ?? false),
+            $fotoEvidencia
         );
 
-        return back()->with('success', 'Marcador y tabla de posiciones actualizados.');
+        return back()->with('success', 'Marcador, evidencia fotográfica y tabla de posiciones actualizados.');
     }
 
     public function eliminarPartido(string $id): RedirectResponse
@@ -232,11 +352,13 @@ class AdminController extends Controller
             'name' => ['required', 'string', 'max:150'],
             'clave' => ['required', 'string', 'min:4'],
             'delegacion_id' => ['required', 'string', 'exists:delegaciones,id'],
+            'disciplinas' => ['nullable', 'array'],
+            'disciplinas.*' => ['string', 'exists:disciplinas,id'],
         ], [
             'username.unique' => 'El nombre de usuario ya está registrado en el sistema.',
         ]);
 
-        User::create([
+        $user = User::create([
             'username' => $data['username'],
             'name' => $data['name'],
             'email' => $data['username'].'@macroregional.pe',
@@ -246,7 +368,25 @@ class AdminController extends Controller
             'activo' => true,
         ]);
 
-        return back()->with('success', 'Credenciales de delegado creadas exitosamente.');
+        if (! empty($data['disciplinas'])) {
+            $user->disciplinasAsignadas()->sync($data['disciplinas']);
+        }
+
+        return back()->with('success', 'Credenciales y permisos de delegado configurados exitosamente.');
+    }
+
+    public function actualizarPermisosDelegado(Request $request, int $id): RedirectResponse
+    {
+        $user = User::findOrFail($id);
+
+        $data = $request->validate([
+            'disciplinas' => ['nullable', 'array'],
+            'disciplinas.*' => ['string', 'exists:disciplinas,id'],
+        ]);
+
+        $user->disciplinasAsignadas()->sync($data['disciplinas'] ?? []);
+
+        return back()->with('success', 'Permisos granulares del delegado actualizados.');
     }
 
     public function eliminarDelegado(int $id): RedirectResponse
@@ -275,7 +415,7 @@ class AdminController extends Controller
     /**
      * Valida y almacena de forma segura un archivo de imagen en uploads.
      */
-    private function almacenarImagenSegura(mixed $file, string $subdirectorio, string $prefijo): string
+    public function almacenarImagenSegura(mixed $file, string $subdirectorio, string $prefijo): string
     {
         $extension = strtolower($file->extension() ?: $file->guessExtension() ?: 'jpg');
         $permitidas = ['jpeg', 'jpg', 'png', 'webp', 'avif'];

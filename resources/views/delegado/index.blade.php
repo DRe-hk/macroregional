@@ -83,7 +83,7 @@
                     $esLocal = $partido->local_id === $user->delegacion_id;
                 @endphp
                 <div class="rounded-xl border border-slate-200 bg-white p-5 shadow-2xs">
-                    <form action="{{ route('delegado.marcador') }}" method="POST" class="space-y-4">
+                    <form action="{{ route('delegado.marcador') }}" method="POST" enctype="multipart/form-data" class="space-y-4">
                         @csrf
                         <input type="hidden" name="partido_id" value="{{ $partido->id }}">
 
@@ -97,10 +97,22 @@
                                 </span>
                             </div>
 
-                            <div class="flex items-center gap-2 text-xs text-slate-500 font-semibold">
+                            <div class="flex items-center flex-wrap gap-2 text-xs text-slate-500 font-semibold">
+                                @if($partido->fecha)
+                                    <span class="inline-flex items-center gap-1 text-slate-700 font-bold bg-slate-100 px-2 py-0.5 rounded text-[11px]">
+                                        <svg class="size-3 text-slate-500" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
+                                        {{ \Carbon\Carbon::parse($partido->fecha)->format('d/m/Y') }}
+                                    </span>
+                                    <span>·</span>
+                                @endif
                                 <span>{{ $partido->cancha ?: 'Cancha Principal' }}</span>
                                 <span>·</span>
                                 <span>{{ $partido->horario ?: '09:00 AM' }}</span>
+                                @if($partido->es_wo)
+                                    <span class="rounded bg-rose-100 px-2 py-0.5 text-[10px] font-black text-rose-800 uppercase">
+                                        W.O.
+                                    </span>
+                                @endif
                                 @if($esFinalizado)
                                     <span class="rounded bg-emerald-100 px-2 py-0.5 text-[10px] font-black text-emerald-800 uppercase">
                                         Finalizado
@@ -136,7 +148,7 @@
                                     </div>
                                 </div>
                                 <div class="flex items-center gap-1">
-                                    <label class="text-[10px] font-bold text-slate-400">Goles:</label>
+                                    <label class="text-[10px] font-bold text-slate-400">Puntos/Goles:</label>
                                     <input
                                         type="number"
                                         name="local_goles"
@@ -167,7 +179,7 @@
                                     </div>
                                 </div>
                                 <div class="flex items-center gap-1">
-                                    <label class="text-[10px] font-bold text-slate-400">Goles:</label>
+                                    <label class="text-[10px] font-bold text-slate-400">Puntos/Goles:</label>
                                     <input
                                         type="number"
                                         name="visitante_goles"
@@ -178,6 +190,42 @@
                                 </div>
                             </div>
 
+                        </div>
+
+                        <!-- Evidencia fotográfica / Acta y opciones adicionales -->
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-3 pt-1 border-t border-slate-100">
+                            <div>
+                                <label class="block text-[11px] font-bold uppercase text-slate-600 mb-1">
+                                    Subir Acta / Foto de Evidencia Oficial
+                                </label>
+                                <input
+                                    type="file"
+                                    name="evidencia_file"
+                                    accept="image/*"
+                                    class="w-full text-xs text-slate-600 file:mr-2 file:py-1 file:px-2.5 file:rounded-md file:border-0 file:text-[11px] file:font-bold file:bg-slate-100 file:text-slate-800 hover:file:bg-slate-200 cursor-pointer"
+                                />
+                                @if($partido->foto_evidencia)
+                                    <div class="mt-1 flex items-center gap-2">
+                                        <a href="{{ $partido->foto_evidencia }}" target="_blank" class="inline-flex items-center gap-1 text-[11px] font-bold text-blue-600 hover:underline">
+                                            <svg class="size-3" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/></svg>
+                                            Ver acta subida actualmente
+                                        </a>
+                                    </div>
+                                @endif
+                            </div>
+
+                            <div class="flex items-center gap-3 md:justify-end">
+                                <label class="inline-flex items-center gap-2 text-xs font-bold text-slate-700 cursor-pointer select-none">
+                                    <input
+                                        type="checkbox"
+                                        name="es_wo"
+                                        value="1"
+                                        {{ $partido->es_wo ? 'checked' : '' }}
+                                        class="rounded border-slate-300 text-rose-600 focus:ring-rose-500 size-4"
+                                    />
+                                    <span>Declarar por Walkover (W.O.)</span>
+                                </label>
+                            </div>
                         </div>
 
                         <!-- Observaciones y Guardado -->

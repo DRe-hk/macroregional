@@ -30,7 +30,10 @@ Route::middleware(['auth', 'delegado'])->prefix('delegado')->name('delegado.')->
 Route::middleware(['auth', 'admin'])->prefix('admin')->name('admin.')->group(function () {
     Route::get('/', [AdminController::class, 'index'])->name('index');
     Route::post('/torneo', [AdminController::class, 'actualizarTorneo'])->name('torneo.update');
+    Route::post('/torneo/carrusel', [AdminController::class, 'guardarSlideCarrusel'])->name('carrusel.guardar');
+    Route::delete('/torneo/carrusel/{index}', [AdminController::class, 'eliminarSlideCarrusel'])->name('carrusel.eliminar');
     Route::post('/deportes', [AdminController::class, 'guardarDeporte'])->name('deporte.guardar');
+    Route::post('/deportes/{id}/podio', [AdminController::class, 'guardarPodioIndividual'])->name('deporte.podio');
     Route::delete('/deportes/{id}', [AdminController::class, 'eliminarDeporte'])->name('deporte.eliminar');
     Route::post('/delegaciones', [AdminController::class, 'guardarDelegacion'])->name('delegacion.guardar');
     Route::delete('/delegaciones/{id}', [AdminController::class, 'eliminarDelegacion'])->name('delegacion.eliminar');
@@ -38,6 +41,7 @@ Route::middleware(['auth', 'admin'])->prefix('admin')->name('admin.')->group(fun
     Route::post('/marcadores', [AdminController::class, 'actualizarMarcador'])->name('marcador.update');
     Route::delete('/partidos/{id}', [AdminController::class, 'eliminarPartido'])->name('partido.eliminar');
     Route::post('/delegados', [AdminController::class, 'guardarDelegado'])->name('delegado.guardar');
+    Route::post('/delegados/{id}/permisos', [AdminController::class, 'actualizarPermisosDelegado'])->name('delegado.permisos');
     Route::delete('/delegados/{id}', [AdminController::class, 'eliminarDelegado'])->name('delegado.eliminar');
     Route::post('/reiniciar', [AdminController::class, 'reiniciarBd'])->name('reiniciar');
 });
